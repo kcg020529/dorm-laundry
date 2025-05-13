@@ -1,30 +1,40 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>기숙사 세탁기 예약</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HUFS Dorm Laundry Reservation</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>기숙사 세탁기 예약 시스템</h1>
-    <nav>
-      <a href="#home">홈</a>
-      <a href="#reserve">예약하기</a>
+  <header class="navbar">
+    <div class="logo-container">
+      <img src="상징 미네르바 활용형.jpg" alt="HUFS Logo" class="logo-img"/>
+      <div class="logo-text">
+        Hufs Dorm<br><span>Laundry Reservation</span>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <ul class="nav-links">
+        <li><a href="#">홈</a></li>
+        <li><a href="#">예약하기</a></li>
+        <li><a href="#">이용안내</a></li>
+        <li><a href="#">My Page</a></li>
+      </ul>
     </nav>
+
+    <button class="login-btn">Log In</button>
   </header>
-  
-  <section id="home">
-    <h2>환영합니다!</h2>
-    <p>여기에서 세탁기 예약을 하실 수 있습니다.</p>
-  </section>
 
-  <section id="reserve">
-    <h2>세탁기 예약</h2>
-    <button id="reserveButton">예약하기</button>
-  </section>
-
-  <script src="main.js"></script>
+  <main class="main-section">
+    <div class="overlay">
+      <h1 class="reserve-text">Reserve<br/>NOW</h1>
+      <div class="buttons">
+        <button class="machine-btn">세탁기</button>
+        <button class="machine-btn">건조기</button>
+      </div>
+    </div>
+  </main>
 </body>
 </html>
