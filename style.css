@@ -1,32 +1,147 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+}
+
 body {
-    font-family: Arial, sans-serif;
-  }
-  
-  header {
-    background-color: #f8f8f8;
-    padding: 20px;
-    text-align: center;
-  }
-  
-  nav a {
-    margin: 0 10px;
-    text-decoration: none;
-    color: #333;
-  }
-  
-  section {
-    margin: 20px;
-  }
-  
-  button {
-    background-color: #007BFF;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-  }
-  
+  background: url('background.jpg') no-repeat center center fixed;
+  background-size: cover;
+}
+
+/* 상단바 기본 구조 */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  position: relative;
+}
+
+/* 로고 영역 */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.logo-text span {
+  font-weight: normal;
+  color: #003366;
+}
+
+/* 메뉴 중앙 고정 */
+.nav-menu {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 메뉴 항목 */
+.nav-links {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.nav-links li {
+  display: flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+/* 로그인 버튼 */
+.login-btn {
+  padding: 0.5rem 1rem;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 메인 섹션 */
+.main-section {
+  height: calc(100vh - 80px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.overlay {
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 3rem;
+  border-radius: 10px;
+}
+
+.reserve-text {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  color: #222;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.machine-btn {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  border: 2px solid #003366;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.machine-btn:first-child {
+  background-color: #003366;
+  color: white;
+}
+
+.machine-btn:last-child {
+  background-color: white;
+  color: #003366;
+}
+
+.machine-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
