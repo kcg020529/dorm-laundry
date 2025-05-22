@@ -1,6 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
 from .models import User, WashingMachine, Reservation
 from .serializers import (
     UserSerializer, WashingMachineSerializer,
@@ -11,6 +13,7 @@ from datetime import timedelta
 from .tasks import send_reservation_reminder
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def login(request):
     student_id = request.data.get('student_id')
     if not student_id:
@@ -20,11 +23,13 @@ def login(request):
     return Response(UserSerializer(user).data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_machines(request):
     machines = WashingMachine.objects.all()
     return Response(WashingMachineSerializer(machines, many=True).data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_reservation(request):
     student_id = request.data.get('student_id')
     try:
@@ -42,11 +47,14 @@ def create_reservation(request):
     return Response(serializer.errors, status=400)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def user_reservations(request):
     student_id = request.query_params.get('student_id')
     reservations = Reservation.objects.filter(user__student_id=student_id)
     return Response(ReservationSerializer(reservations, many=True).data)
+
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_machines(request):
     # building=A 와 같이 필터링 쿼리 파라미터 추가
     building_name = request.query_params.get('building')
@@ -57,6 +65,7 @@ def list_machines(request):
     return Response(WashingMachineSerializer(machines, many=True).data)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def cancel_reservation(request, pk):
     try:
         reservation = Reservation.objects.get(pk=pk)
@@ -70,6 +79,7 @@ def cancel_reservation(request, pk):
     return Response({'message': '예약이 취소되었습니다.'})
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_reservation(request):
     student_id = request.data.get('student_id')
     try:
@@ -105,7 +115,7 @@ def create_reservation(request):
 
         # 알림 예약: 예약 10분 전 실행
         reminder_time = reservation.start_time - timedelta(minutes=10)
-        send_reservation_reminder.apply_async((reservation.id,), eta=reminder_time)
+        send_reservation_reminder.apply_aasync((reservation.id,), eta=reminder_time)
 
         return Response(ReservationSerializer(reservation).data, status=201)
     
