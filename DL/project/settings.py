@@ -14,6 +14,18 @@ DATABASES = {
     }
 }
 
+LOGIN_URL = '/api/login/'
+LOGIN_REDIRECT_URL = '/'  # 로그인 후 이동할 위치
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 
 INSTALLED_APPS += [
