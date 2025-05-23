@@ -76,6 +76,11 @@ body {
   line-height: 1.2;
 }
 
+.btn-link {
+  text-decoration: none;
+  color: white;
+}
+
 /* 로그인 버튼 */
 .login-btn {
   padding: 0.5rem 1rem;
@@ -144,4 +149,79 @@ body {
 .machine-btn:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+/* laundry page */
+.machine-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.machine-card {
+  width: 260px;
+  padding: 1.5rem;
+  background-color: white;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.machine-card:hover {
+  transform: scale(1.02);
+}
+
+.machine-available {
+  border-color: #28a745;
+}
+
+.machine-in-use {
+  border-color: #dc3545;
+}
+
+.machine-status {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.machine-status.available {
+  color: #28a745;
+}
+
+.machine-status.in-use {
+  color: #dc3545;
+}
+
+.machine-time {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.machine-btn {
+  padding: 0.7rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: #003366;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.machine-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.machine-btn.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
 }
