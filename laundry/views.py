@@ -5,7 +5,6 @@ from rest_framework import status
 from .models import User, WashingMachine, Reservation
 from .serializers import (
     UserSerializer, WashingMachineSerializer,
-    ReservationSerializer, CreateReservationSerializer
 )
 from django.utils import timezone
 from datetime import timedelta
@@ -99,6 +98,23 @@ def change_machine_status(request, pk):
     except WashingMachine.DoesNotExist:
         return Response({'error': '세탁기를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['POST'])
+def login(request):
+    student_id = request.data.get('student_id')
+    password = request.data.get('password')
+
+    if not student_id or not password:
+        return Response({'error': '학번과 비밀번호가 필요합니다.'}, status=400)
+
+    try:
+        user = User.objects.get(student_id=student_id)
+        if not user.check_password(password):
+            return Response({'error': '비밀번호가 일치하지 않습니다.'}, status=401)
+    except User.DoesNotExist:
+        return Response({'error': '존재하지 않는 사용자입니다.'}, status=404)
+
+    return Response(UserSerializer(user).data)
+
 def index_page(request):
     return render(request, 'index.html')
 
@@ -113,3 +129,6 @@ def login_page(request):
             request.session['user_id'] = user.id
             return redirect('/laundry/machines/view/')
     return render(request, 'login.html')
+
+def machine_list_page(request):
+    return render(request, 'laundry_page.html')

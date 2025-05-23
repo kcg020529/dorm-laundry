@@ -1,6 +1,12 @@
+import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 INSTALLED_APPS = [
     'rest_framework',
     'laundry',
+    'django_celery_beat',
 ]
 
 DATABASES = {
@@ -13,6 +19,23 @@ DATABASES = {
         'PORT': '3306',
     }
 }
+
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 LOGIN_URL = '/api/login/'
 LOGIN_REDIRECT_URL = '/'  # 로그인 후 이동할 위치
