@@ -1,3 +1,4 @@
+from django.shortcuts import render, redirect
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -87,3 +88,28 @@ def create_reservation(request):
         machine.save()
         return Response(ReservationSerializer(reservation).data, status=201)
     return Response(serializer.errors, status=400)
+
+@api_view(['POST'])
+def change_machine_status(request, pk):
+    try:
+        machine = WashingMachine.objects.get(pk=pk)
+        machine.is_in_use = not machine.is_in_use
+        machine.save()
+        return Response({'message': '상태가 변경되었습니다.', 'is_in_use': machine.is_in_use}, status=status.HTTP_200_OK)
+    except WashingMachine.DoesNotExist:
+        return Response({'error': '세탁기를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+def index_page(request):
+    return render(request, 'index.html')
+
+def machine_list_page(request):
+    return render(request, 'available_machines.html')
+
+def login_page(request):
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        if student_id:
+            user, created = User.objects.get_or_create(student_id=student_id)
+            request.session['user_id'] = user.id
+            return redirect('/laundry/machines/view/')
+    return render(request, 'login.html')
