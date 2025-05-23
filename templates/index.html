@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HUFS Dorm Laundry Reservation</title>
+  <link rel="stylesheet" href="{% static 'style.css' %}" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo-container">
+      <img src="{% static '상징 미네르바 활용형.jpg' %}" alt="HUFS Logo" class="logo-img"/>
+      <div class="logo-text">
+        Hufs Dorm<br><span>Laundry Reservation</span>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <ul class="nav-links">
+        <li><a href="#">홈</a></li>
+        <li><a href="#">예약하기</a></li>
+        <li><a href="#">이용안내</a></li>
+        <li><a href="#">My Page</a></li>
+      </ul>
+    </nav>
+
+    <a class="login-btn" href="/laundry/login/">Log In</a>
+  </header>
+
+  <main class="main-section">
+    <div class="overlay">
+      <h1 class="reserve-text">Reserve<br/>NOW</h1>
+      <div class="buttons">
+        <button class="machine-btn">세탁기</button>
+        <button class="machine-btn">건조기</button>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

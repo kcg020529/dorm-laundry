@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>세탁기 예약</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef3f8;
+      padding: 2rem;
+    }
+    .machine-container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      border-radius: 10px;xx
+      padding: 2rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .machine-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid #ddd;
+    }
+    .machine-info {
+      flex: 1;
+    }
+    .machine-status {
+      font-weight: bold;
+    }
+    .machine-status.available {
+      color: green;
+    }
+    .machine-status.in-use {
+      color: red;
+    }
+    .notify-btn {
+      background: #003366;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .notify-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="machine-container">
+    <h2>이용 가능한 세탁기</h2>
+    <div id="machineList">로딩 중...</div>
+  </div>
+
+  <script>
+    async function loadMachines() {
+      const res = await fetch('/api/machines/');
+      const machines = await res.json();
+      const container = document.getElementById('machineList');
+      container.innerHTML = '';
+
+      machines.forEach(machine => {
+        const card = document.createElement('div');
+        card.className = 'machine-card';
+
+        const statusClass = machine.is_in_use ? 'in-use' : 'available';
+        const statusText = machine.is_in_use ? '사용 중' : '사용 가능';
+
+        card.innerHTML = `
+          <div class="machine-info">
+            <h4>${machine.building.name}동 ${machine.name}</h4>
+            <div class="machine-status ${statusClass}">${statusText}</div>
+            <div class="remain-time">${machine.is_in_use ? '남은 시간: 확인 중...' : '곧 예약 가능'}</div>
+          </div>
+          <button class="notify-btn" ${machine.is_in_use ? '' : 'disabled'} onclick="subscribeAlert(${machine.id})">
+            알림 설정
+          </button>
+        `;
+
+        container.appendChild(card);
+
+        if (machine.is_in_use) {
+          // 남은 시간 로직 가정: 추후 API에서 받아오는 방식으로 개선
+          fetch(`/api/remaining-time/?machine_id=${machine.id}`)
+            .then(r => r.json())
+            .then(data => {
+              const remainElem = card.querySelector('.remain-time');
+              remainElem.textContent = `남은 시간: ${data.minutes}분`;
+            });
+        }
+      });
+    }
+
+    function subscribeAlert(machineId) {
+      alert(`알림이 설정되었습니다. 세탁 완료 시 알림이 전송됩니다. (예시)`);
+      // 여기에 알림 등록 API 호출 추가 가능
+    }
+
+    window.onload = loadMachines;
+  </script>
+</body>
+</html>
