@@ -4,12 +4,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
-from .models import User, WashingMachine, WaitList, Reservation
+from .models import User, WashingMachine, WaitList
 from .serializers import (
     UserSerializer, WashingMachineSerializer, WaitListSerializer,
-    ReservationSerializer, CreateReservationSerializer
 )
-from .tasks import send_reservation_reminder
 
 @api_view(['POST'])
 def login(request):  # ▲ 기존 로그인 수정: 비밀번호 포함
@@ -108,3 +106,14 @@ def cancel_reservation(request, pk):
     machine.is_in_use = False
     machine.save()
     return Response({'message': '예약이 취소되었습니다.'})
+
+@api_view(['POST'])
+def change_machine_status(request, pk):
+    try:
+        machine = WashingMachine.objects.get(pk=pk)
+    except WashingMachine.DoesNotExist:
+        return Response({'error': '해당 세탁기가 존재하지 않습니다.'}, status=404)
+
+    machine.is_available = not machine.is_available  # 사용 가능 여부 토글
+    machine.save()
+    return Response({'status': '변경되었습니다.'})

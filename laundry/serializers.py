@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Building, WashingMachine, WaitList, Reservation
+from .models import User, Building, WashingMachine, WaitList
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,15 +27,3 @@ class WaitListSerializer(serializers.ModelSerializer):  # ▲ 대기열 직렬�
         model = WaitList
         fields = '__all__'
 
-class ReservationSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    machine = WashingMachineSerializer()
-
-    class Meta:
-        model = Reservation
-        fields = '__all__'
-
-class CreateReservationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Reservation
-        fields = ['machine', 'start_time', 'end_time']
