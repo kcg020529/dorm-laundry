@@ -1,60 +1,31 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import render, redirect
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from .models import User, WashingMachine, Reservation
+from .serializers import (
+    UserSerializer, WashingMachineSerializer,
+    ReservationSerializer, CreateReservationSerializer
+)
 from django.utils import timezone
 from datetime import timedelta
-from .models import User, WashingMachine, WaitList
-from .serializers import (
-    UserSerializer, WashingMachineSerializer, WaitListSerializer,
-)
 
 @api_view(['POST'])
-def login(request):  # ▲ 기존 로그인 수정: 비밀번호 포함
+def login(request):
     student_id = request.data.get('student_id')
-    password = request.data.get('password')
-    try:
-        user = User.objects.get(student_id=student_id)
-        if not user.check_password(password):
-            return Response({'error': '비밀번호가 틀렸습니다.'}, status=403)
-        return Response(UserSerializer(user).data)
-    except User.DoesNotExist:
-        return Response({'error': '사용자가 존재하지 않습니다.'}, status=404)
+    if not student_id:
+        return Response({'error': '학번이 필요합니다.'}, status=400)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_to_waitlist(request):  # ▲ 찜 등록 뷰 추가
-    student_id = request.data.get('student_id')
-    machine_id = request.data.get('machine_id')
-    try:
-        user = User.objects.get(student_id=student_id)
-        machine = WashingMachine.objects.get(id=machine_id)
-    except (User.DoesNotExist, WashingMachine.DoesNotExist):
-        return Response({'error': '잘못된 사용자 또는 세탁기 ID'}, status=404)
-
-    entry = WaitList.objects.create(user=user, machine=machine)
-    return Response(WaitListSerializer(entry).data, status=201)
+    user, created = User.objects.get_or_create(student_id=student_id)
+    return Response(UserSerializer(user).data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def recommend_machine(request):  # ▲ 추천 세탁기 반환
-    from django.db.models import Count
-    machine = WashingMachine.objects.annotate(r_count=Count('waitlist')).order_by('r_count').first()
-    return Response(WashingMachineSerializer(machine).data)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_machines(request):  # ▲ 건물 필터 포함 목록
-    building_name = request.query_params.get('building')
-    if building_name:
-        machines = WashingMachine.objects.filter(building__name=building_name)
-    else:
-        machines = WashingMachine.objects.all()
+def list_machines(request):
+    machines = WashingMachine.objects.all()
     return Response(WashingMachineSerializer(machines, many=True).data)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_reservation(request):  # ▲ 예약 생성 및 중복 방지, 알림 등록 포함
+def create_reservation(request):
     student_id = request.data.get('student_id')
     try:
         user = User.objects.get(student_id=student_id)
@@ -63,38 +34,20 @@ def create_reservation(request):  # ▲ 예약 생성 및 중복 방지, 알림 
 
     serializer = CreateReservationSerializer(data=request.data)
     if serializer.is_valid():
-        machine = serializer.validated_data['machine']
-        start_time = serializer.validated_data['start_time']
-        end_time = serializer.validated_data['end_time']
-
-        overlapping = Reservation.objects.filter(
-            machine=machine,
-            start_time__lt=end_time,
-            end_time__gt=start_time
-        )
-        if overlapping.exists():
-            return Response({'error': '해당 시간대에 이미 예약이 있습니다.'}, status=409)
-
         reservation = serializer.save(user=user)
+        machine = reservation.machine
         machine.is_in_use = True
         machine.save()
-
-        reminder_time = reservation.start_time - timedelta(minutes=10)
-        send_reservation_reminder.apply_async((reservation.id,), eta=reminder_time)
-
         return Response(ReservationSerializer(reservation).data, status=201)
-
     return Response(serializer.errors, status=400)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def user_reservations(request):
     student_id = request.query_params.get('student_id')
     reservations = Reservation.objects.filter(user__student_id=student_id)
     return Response(ReservationSerializer(reservations, many=True).data)
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
 def cancel_reservation(request, pk):
     try:
         reservation = Reservation.objects.get(pk=pk)
@@ -108,12 +61,55 @@ def cancel_reservation(request, pk):
     return Response({'message': '예약이 취소되었습니다.'})
 
 @api_view(['POST'])
+def create_reservation(request):
+    student_id = request.data.get('student_id')
+    try:
+        user = User.objects.get(student_id=student_id)
+    except User.DoesNotExist:
+        return Response({'error': '사용자를 찾을 수 없습니다.'}, status=404)
+
+    serializer = CreateReservationSerializer(data=request.data)
+    if serializer.is_valid():
+        machine = serializer.validated_data['machine']
+        start_time = serializer.validated_data['start_time']
+        end_time = serializer.validated_data['end_time']
+
+        # 예약 시간 겹침 방지
+        overlapping = Reservation.objects.filter(
+            machine=machine,
+            start_time__lt=end_time,
+            end_time__gt=start_time
+        )
+        if overlapping.exists():
+            return Response({'error': '해당 시간대에 이미 예약이 있습니다.'}, status=409)
+
+        reservation = serializer.save(user=user)
+        machine.is_in_use = True
+        machine.save()
+        return Response(ReservationSerializer(reservation).data, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(['POST'])
 def change_machine_status(request, pk):
     try:
         machine = WashingMachine.objects.get(pk=pk)
+        machine.is_in_use = not machine.is_in_use
+        machine.save()
+        return Response({'message': '상태가 변경되었습니다.', 'is_in_use': machine.is_in_use}, status=status.HTTP_200_OK)
     except WashingMachine.DoesNotExist:
-        return Response({'error': '해당 세탁기가 존재하지 않습니다.'}, status=404)
+        return Response({'error': '세탁기를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
-    machine.is_available = not machine.is_available  # 사용 가능 여부 토글
-    machine.save()
-    return Response({'status': '변경되었습니다.'})
+def index_page(request):
+    return render(request, 'index.html')
+
+def machine_list_page(request):
+    return render(request, 'available_machines.html')
+
+def login_page(request):
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        if student_id:
+            user, created = User.objects.get_or_create(student_id=student_id)
+            request.session['user_id'] = user.id
+            return redirect('/laundry/machines/view/')
+    return render(request, 'login.html')
