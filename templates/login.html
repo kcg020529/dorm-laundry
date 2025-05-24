@@ -1,91 +1,65 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>로그인 | HUFS Dorm Laundry</title>
-  <link rel="stylesheet" href="{% static 'style.css' %}" />
-  <style>
-    .login-wrapper {
-      height: calc(100vh - 80px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+{% extends 'base.html' %}
 
-    .login-box {
-      background-color: rgba(255, 255, 255, 0.9);
-      padding: 2.5rem 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      width: 350px;
-      text-align: center;
-    }
+{% block content %}
+<style>
+  .login-wrapper {
+    height: calc(100vh - 80px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-    .login-box h2 {
-      font-size: 1.8rem;
-      margin-bottom: 1.5rem;
-      color: #003366;
-    }
+  .login-box {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 2.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 350px;
+    text-align: center;
+  }
 
-    .login-box input[type="text"],
-    .login-box input[type="password"] {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
+  .login-box h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #003366;
+  }
 
-    .login-box button {
-      width: 100%;
-      padding: 0.75rem;
-      background-color: #003366;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+  .login-box input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
 
-    .login-box button:hover {
-      transform: scale(1.03);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-  </style>
-</head>
-<body>
-  <!-- 상단 네비게이션 (index.html과 통일) -->
-  <header class="navbar">
-    <div class="logo-container">
-      <img src="{% static '상징 미네르바 활용형.jpg' %}" alt="HUFS Logo" class="logo-img"/>
-      <div class="logo-text">
-        Hufs Dorm<br><span>Laundry Reservation</span>
-      </div>
-    </div>
-    <nav class="nav-menu">
-      <ul class="nav-links">
-        <li><a href="{% url 'index_page' %}">홈</a></li>
-        <li><a href="{% url 'machine_list_page' %}">예약하기</a></li>
-        <li><a href="#">이용안내</a></li>
-        <li><a href="#">My Page</a></li>
-      </ul>
-    </nav>
-  </header>
+  .login-box button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #003366;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
 
-  <!-- 로그인 본문 -->
-  <div class="login-wrapper">
-    <div class="login-box">
-      <h2>로그인</h2>
-      <form method="POST">
-        {% csrf_token %}
-        <input type="text" name="student_id" placeholder="학번을 입력해주세요" required />
-        <button type="submit">로그인하기</button>
-      </form>
-    </div>
+  .login-box button:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+</style>
+
+<div class="login-wrapper">
+  <div class="login-box">
+    <h2>로그인</h2>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="text" name="student_id" placeholder="학번을 입력해주세요" required />
+      <button type="submit">로그인하기</button>
+    </form>
   </div>
-</body>
-</html>
+</div>
+{% endblock %}
