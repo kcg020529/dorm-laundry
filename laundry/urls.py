@@ -12,4 +12,5 @@ urlpatterns = [
     path('reservations/<int:pk>/', views.cancel_reservation),
     path('admin/machines/<int:pk>/status/', views.change_machine_status),
     path('index/', views.index_page, name='index_page'),
+    path('mypage/', views.mypage, name='mypage'),
 ]

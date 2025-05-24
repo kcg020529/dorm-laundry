@@ -9,7 +9,7 @@
 <body>
     <header class="navbar">
         <div class="logo-container">
-            <img src="{% static '상징 미네르바 활용형.jpg' %}" alt="HUFS Logo" class="logo-img">
+            <img src="{% static '상징_미네르바_배경흰색.png' %}" alt="HUFS Logo" class="logo-img">
             <div class="logo-text">
                 Hufs Dorm<br><span>Laundry Reservation</span>
             </div>
@@ -20,7 +20,7 @@
                 <li><a href="{% url 'index_page' %}">홈</a></li>
                 <li><a href="{% url 'machine_list_page' %}">예약하기</a></li>
                 <li><a href="#">이용안내</a></li>
-                <li><a href="#">마이페이지</a></li>
+                <li><a href="{% url 'mypage' %}">마이페이지</a></li>
             </ul>
         </nav>
 

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+.mypage-container {
+    width: 500px;
+    margin: 40px 0 0 40px;
+    padding: 2.5rem 2rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-family: '맑은 고딕', sans-serif;
+}
+.mypage-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.mypage-header img {
+    width: 100px;
+    margin-right: 20px;
+}
+.mypage-header .info {
+    font-size: 1em;
+}
+.mypage-header .info h2 {
+    margin-bottom: 8px;
+    font-size: 1.5em;
+}
+.mypage-section {
+    margin-top: 30px;
+}
+.mypage-section h3 {
+    border-bottom: 2px solid #003366;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+.mypage-section ul {
+    list-style: none;
+    padding-left: 0;
+}
+.mypage-section li {
+    margin: 8px 0;
+    font-size: 1.1em;
+}
+.mypage-section a {
+    color: #003366;
+    text-decoration: none;
+}
+.mypage-section a:hover {
+    text-decoration: underline;
+}
+</style>
+
+<div class="mypage-container">
+    <div class="mypage-header">
+        <img src="{% static '상징_미네르바_배경흰색.png' %}" alt="학교 로고">
+        <div class="info">
+            <h2>{{ user.last_name }}{{ user.first_name }}</h2>
+            <p>{{ user.profile.student_id }} || {{ user.profile.department }}</p>
+            <p>{{ user.email }}</p>
+        </div>
+    </div>
+
+    <div class="mypage-section">
+        <h3>▼ 내 예약 관리</h3>
+        <ul>
+            <li><a href="#">예약조회</a></li>
+            <li><a href="#">예약취소</a></li>
+        </ul>
+    </div>
+
+    <div class="mypage-section">
+        <h3>▼ 내 계정 관리</h3>
+        <ul>
+            <li><a href="#">비밀번호 변경</a></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

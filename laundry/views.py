@@ -132,3 +132,7 @@ def login_page(request):
 
 def machine_list_page(request):
     return render(request, 'laundry_page.html')
+
+def mypage(request):
+    user = request.user
+    return render(request, 'mypage.html', {'user': user})
