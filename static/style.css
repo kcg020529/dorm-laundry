@@ -83,6 +83,7 @@ body {
 
 /* 로그인 버튼 */
 .login-btn {
+  text-decoration: none;
   padding: 0.5rem 1rem;
   background-color: #003366;
   color: white;
@@ -128,6 +129,7 @@ body {
 }
 
 .machine-btn {
+  text-decoration: none;
   padding: 1rem 2rem;
   font-size: 1.1rem;
   border: 2px solid #003366;
