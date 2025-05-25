@@ -3,7 +3,10 @@ from django.core.mail import send_mail
 from .models import Reservation
 
 @shared_task
-def send_reservation_reminder(reservation_id):
+def send_reservation_reminder.apply_async(
+    args=[reservation.id],
+    eta=reservation.start_time - timedelta(minutes=10)
+)
     try:
         reservation = Reservation.objects.get(id=reservation_id)
         user = reservation.user
