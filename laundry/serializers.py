@@ -13,11 +13,10 @@ class BuildingSerializer(serializers.ModelSerializer):
 
 class WashingMachineSerializer(serializers.ModelSerializer):
     building = serializers.CharField(source='building.name')
-    wait_count = serializers.SerializerMethodField()  # ▲ 대기 인원수 필드 추가
-
+    wait_count = serializers.SerializerMethodField()
     class Meta:
         model = WashingMachine
-        fields = '__all__'
+        fields = ['id', 'building', 'name', 'description', 'is_in_use', 'wait_count']
 
     def get_wait_count(self, obj):
         return obj.waitlist_set.count()  # ▲ 해당 세탁기 대기열 인원 반환
