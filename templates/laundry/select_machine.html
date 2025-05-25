@@ -1,4 +1,6 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
 <h1>동 및 기계 선택</h1>
 <label for="building">동 선택:</label>
@@ -12,28 +14,35 @@
 
 <button id="load-machines">조회</button>
 <ul id="machine-list"></ul>
+{% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'main.js' %}"></script>
 <script>
 async function fetchBuildings() {
-  const res = await fetch('/api/buildings/', {credentials:'include'});
+  const res = await fetch("{% url 'laundry:building_counts' %}", { credentials: 'include' });
   const data = await res.json();
   const sel = document.getElementById('building');
+  sel.innerHTML = '';
   data.forEach(b => {
-    sel.innerHTML += `<option value="${b.id}">${b.name}동 (세탁기 ${b.washer_count}대, 건조기 ${b.dryer_count}대)</option>`;
+    sel.innerHTML += `<option value="${b.building}">${b.building}동 (사용 중: ${b.count}대)</option>`;
   });
 }
 
 async function fetchMachines() {
   const bId = document.getElementById('building').value;
   const type = document.querySelector('input[name="type"]:checked').value;
-  const res = await fetch(`/api/machines/?type=${type}&building=${bId}`, {credentials:'include'});
+  const res = await fetch("{% url 'laundry:get_machine_list_api' %}?type=" + type + "&building=" + bId, { credentials: 'include' });
   const machines = await res.json();
-  document.getElementById('machine-list').innerHTML = machines.map(m =>
-    `<li>${m.building_name}동 ${m.name} — 사용중: ${m.is_in_use}</li>`
+  const list = document.getElementById('machine-list');
+  list.innerHTML = machines.map(m =>
+    `<li>${m.building}동 ${m.name} — 사용중: ${m.is_in_use ? '예' : '아니오'}</li>`
   ).join('');
 }
 
-window.onload = fetchBuildings;
-document.getElementById('load-machines').onclick = fetchMachines;
+document.addEventListener('DOMContentLoaded', () => {
+  fetchBuildings();
+  document.getElementById('load-machines').addEventListener('click', fetchMachines);
+});
 </script>
 {% endblock %}
