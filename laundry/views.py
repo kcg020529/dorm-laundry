@@ -1,9 +1,13 @@
 from django.shortcuts import render, redirect
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import PushSubscription
 
 from .models import User, WashingMachine, Reservation, WaitList
 from .serializers import (
@@ -150,3 +154,20 @@ def index_page(request):
 
 def mypage(request):
     return render(request, 'mypage.html', {'user': request.user})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def subscribe_push(request):
+    """
+    프론트엔드에서 구독({endpoint, keys}) 정보를 보내면 저장합니다.
+    """
+    info = request.data.get('subscription')
+    if not info:
+        return Response({'error': 'subscription 정보가 필요합니다.'}, status=400)
+
+    # 이미 같은 구독이 있으면 무시하거나 업데이트
+    sub, created = PushSubscription.objects.update_or_create(
+        user=request.user,
+        defaults={'subscription_info': info}
+    )
+    return Response({'subscribed': True}, status=201)
