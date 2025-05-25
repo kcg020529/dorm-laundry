@@ -23,11 +23,21 @@ User = get_user_model()
 # ── 페이지 뷰 ──
 
 def index_page(request):
-    return redirect('machine_list_page')
+    return redirect('laundry:machine_list_page')
 
 @login_required
 def machine_list_page(request):
     machines = Machine.objects.all()
+    return render(request, 'laundry/machine_list.html', {'machines': machines})
+
+@login_required
+def washer_list(request):
+    machines = Machine.objects.filter(machine_type='washer')
+    return render(request, 'laundry/machine_list.html', {'machines': machines})
+
+@login_required
+def dryer_list(request):
+    machines = Machine.objects.filter(machine_type='dryer')
     return render(request, 'laundry/machine_list.html', {'machines': machines})
 
 @login_required
@@ -41,7 +51,6 @@ def mypage(request):
 
 @login_required
 def building_list_with_counts(request):
-    # 각 동별 사용 중인 기계 수를 JSON으로 반환
     buildings = Machine.objects.values_list('building', flat=True).distinct()
     data = []
     for b in buildings:
@@ -55,6 +64,12 @@ def building_list_with_counts(request):
 @permission_classes([IsAuthenticated])
 def get_machine_list_api(request):
     machines = Machine.objects.all()
+    machine_type = request.GET.get('type')
+    building = request.GET.get('building')
+    if machine_type:
+        machines = machines.filter(machine_type=machine_type)
+    if building:
+        machines = machines.filter(building=building)
     data = [
         {
             'id': m.id,
@@ -101,12 +116,12 @@ def create_reservation(request):
         start_time=start,
         end_time=end
     )
-    # 상태 토글 스케줄
     start_reservation_task.apply_async(args=[new_res.id], eta=start)
     end_reservation_task.apply_async(args=[new_res.id], eta=end)
-    # 알림 스케줄
     for label, offset in [('10분 전', timedelta(minutes=10)), ('시작 시각', timedelta())]:
-        eta = timezone.make_naive(start, timezone.get_current_timezone()) - offset
+        eta = start - offset
+        if timezone.is_naive(eta):
+            eta = timezone.make_aware(eta, timezone.get_current_timezone())
         send_reservation_reminder.apply_async(args=[new_res.id, label], eta=eta)
 
     return Response({'message': '예약이 생성되었습니다.'}, status=status.HTTP_201_CREATED)
@@ -114,7 +129,6 @@ def create_reservation(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def cancel_reservation(request, pk=None):
-    # URL 패턴에 <int:pk> 사용 시
     reservation = get_object_or_404(Reservation, pk=pk if pk else request.data.get('reservation_id'))
     machine = reservation.machine
     reservation.delete()
@@ -139,25 +153,16 @@ def list_waitlist(request, machine_id):
     data = [{'user': w.user.student_id, 'joined_at': w.created_at} for w in waiters]
     return Response(data)
 
-# ── 회원가입 뷰 (AllowAny) ──
+# ── Signup 뷰 ──
 
+@permission_classes([AllowAny])
 def signup(request):
     if request.method == 'POST':
-        student_id = request.POST.get('student_id')
-        password = request.POST.get('password')
-        password2 = request.POST.get('password2')
-        error = None
-        if not (student_id and password and password2):
-            error = '모든 필드를 입력해주세요.'
-        elif password != password2:
-            error = '비밀번호가 일치하지 않습니다.'
-        elif User.objects.filter(student_id=student_id).exists():
-            error = '이미 존재하는 사용자입니다.'
-        if error:
-            return render(request, 'laundry/signup.html', {'error': error})
-        user = User(student_id=student_id)
-        user.set_password(password)
-        user.save()
-        login(request, user)
-        return redirect('machine_list_page')
-    return render(request, 'laundry/signup.html')
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('laundry:machine_list_page')
+    else:
+        form = UserCreationForm()
+    return render(request, 'laundry/signup.html', {'form': form})
