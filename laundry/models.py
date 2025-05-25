@@ -1,11 +1,12 @@
 # laundry/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.conf import settings
 
 class UserManager(BaseUserManager):
     def create_user(self, student_id, password=None, **extra_fields):
         if not student_id:
-            raise ValueError('The Student ID must be set')
+            raise ValueError('학번은 필수입니다')
         user = self.model(student_id=student_id, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -23,7 +24,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'student_id'
-    REQUIRED_FIELDS = []  # 기본 필수 필드 (email 등), 없으면 빈 리스트
+    REQUIRED_FIELDS = []
 
     objects = UserManager()
 
@@ -62,3 +63,27 @@ class WaitList(models.Model):
 
     def __str__(self):
         return f"{self.user.student_id} waiting for {self.machine}"
+    
+class PushSubscription(models.Model):
+    """
+    웹푸시 알림을 위한 구독 정보 저장 모델
+    endpoint: 푸시 서비스 URL
+    p256dh_key, auth_key: 브라우저에서 생성된 암호화 키
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    endpoint = models.TextField()
+    p256dh_key = models.CharField(max_length=255, blank=True, default='')
+    auth_key   = models.CharField(max_length=255, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"PushSubscription for {self.user.student_id}"
+    
+class Building(models.Model):
+    """
+    기숙사 동 정보를 저장하는 모델
+    """
+    name = models.CharField(max_length=10, unique=True)
+
+    def __str__(self):
+        return self.name

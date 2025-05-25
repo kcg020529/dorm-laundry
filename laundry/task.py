@@ -1,31 +1,38 @@
+# laundry/task.py
 from celery import shared_task
-from .models import Reservation, PushSubscription, Machine, WaitList
-from django.conf import settings
-from pywebpush import webpush, WebPushException
 from django.utils import timezone
 from datetime import timedelta
+from .models import Reservation, Machine, WaitList, PushSubscription
+from django.conf import settings
 import json
+from pywebpush import webpush, WebPushException
 
 @shared_task
 def start_reservation_task(reservation_id):
     """
     예약 시작 시각에 호출되어 기기 사용 상태를 True로 전환합니다.
     """
-    reservation = Reservation.objects.get(id=reservation_id)
-    machine = reservation.machine
-    machine.is_in_use = True
-    machine.save()
+    try:
+        reservation = Reservation.objects.get(id=reservation_id)
+        machine = reservation.machine
+        machine.is_in_use = True
+        machine.save()
+    except Reservation.DoesNotExist:
+        pass
 
 @shared_task
 def end_reservation_task(reservation_id):
     """
     예약 종료 시각에 호출되어 예약 삭제, 기기 사용 상태 False, 대기열 승격을 처리합니다.
     """
-    reservation = Reservation.objects.get(id=reservation_id)
-    machine = reservation.machine
-    reservation.delete()
-    machine.is_in_use = False
-    machine.save()
+    try:
+        reservation = Reservation.objects.get(id=reservation_id)
+        machine = reservation.machine
+        reservation.delete()
+        machine.is_in_use = False
+        machine.save()
+    except Reservation.DoesNotExist:
+        return
 
     # 대기열에서 다음 사용자 자동 승격
     next_wait = WaitList.objects.filter(machine=machine).order_by('created_at').first()
@@ -50,43 +57,37 @@ def end_reservation_task(reservation_id):
             send_reservation_reminder.apply_async(args=[new_res.id, label], eta=eta)
 
 @shared_task
-def send_reservation_reminder(reservation_id, when):
+def send_reservation_reminder(reservation_id, label):
+    """
+    reservation_id에 해당하는 예약 정보를 조회하여
+    label(예: '10분 전', '시작 시각') 웹푸시 알림을 전송합니다.
+    """
     try:
-        reservation = Reservation.objects.get(id=reservation_id)
-
-        # 메시지 분기
-        if when == '10분 전':
-            body = f"{reservation.start_time.strftime('%H:%M')}에 예약하신 세탁기 이용 시간이 10분 남았습니다."
-        else:
-            body = "지금 예약하신 세탁기를 이용할 시간입니다."
-
-        payload = {
-            "title": "[세탁기 예약 알림]",
-            "body": body,
-            "url": "/mypage/reservations/"
-        }
-
-        subs = PushSubscription.objects.filter(user=reservation.user)
-        if not subs.exists():
-            return "구독 정보 없음, 푸시 스킵"
-
-        vapid_kwargs = {
-            "vapid_private_key": settings.WEBPUSH_SETTINGS["VAPID_PRIVATE_KEY"],
-            "vapid_claims": settings.WEBPUSH_SETTINGS["VAPID_CLAIMS"],
-        }
-        for sub in subs:
-            try:
-                webpush(
-                    subscription_info=sub.subscription_info,
-                    data=json.dumps(payload),
-                    **vapid_kwargs
-                )
-            except WebPushException:
-                sub.delete()
-
-        return "푸시 알림 전송 완료"
-
+        res = Reservation.objects.select_related('user', 'machine').get(id=reservation_id)
     except Reservation.DoesNotExist:
-        return "해당 예약이 없습니다."
-    except Exception as e:
-        return str(e)
+        return
+
+    subs = PushSubscription.objects.filter(user=res.user)
+    if not subs.exists():
+        return
+
+    payload = {
+        "title": "예약 알림",
+        "body": f"{res.machine.building}동 {res.machine.name} {label}",
+        "url": settings.SITE_URL + "/laundry/"
+    }
+
+    for sub in subs:
+        try:
+            webpush(
+                subscription_info={
+                    "endpoint": sub.endpoint,
+                    "keys": {"p256dh": sub.p256dh_key, "auth": sub.auth_key}
+                },
+                data=json.dumps(payload),
+                vapid_private_key=settings.VAPID_PRIVATE_KEY,
+                vapid_claims={"sub": settings.VAPID_CLAIMS_SUB}
+            )
+        except WebPushException:
+            sub.delete()
+            continue
