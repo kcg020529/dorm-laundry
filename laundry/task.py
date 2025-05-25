@@ -2,9 +2,10 @@ from celery import shared_task
 from .models import Reservation, PushSubscription
 from django.conf import settings
 from pywebpush import webpush, WebPushException
+import json
 
 @shared_task
-def send_reservation_reminder(reservation_id):
+def send_reservation_reminder(reservation_id, when):
     try:
         reservation = Reservation.objects.get(id=reservation_id)
         user = reservation.user
