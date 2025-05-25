@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from DL.laundry.models import Building, WashingMachine
+from laundry.models import Building, WashingMachine
 
 class Command(BaseCommand):
     help = '건물 및 세탁기 초기 데이터 삽입'
