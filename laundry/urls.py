@@ -14,20 +14,18 @@ from .views import (
     cancel_reservation,
     join_waitlist,
     list_waitlist,
+    machine_list_page,
+    mypage
 )
 
 app_name = 'laundry'
 
 urlpatterns = [
     # /laundry/ 로 들어오면 index_page 로
-    path('', index_page, name='index'),
+    path('', index_page, name='index_page'),
 
-    # /laundry/ → /laundry/login/ 으로 리디렉트
-    path(
-        '',
-        RedirectView.as_view(url='login/', permanent=False),
-        name='laundry-root'
-    ),
+    path('machines/', machine_list_page, name='machine_list_page'),
+    path('mypage/', mypage, name='mypage'),
 
     # 회원가입 / 로그인
     path('signup/', signup, name='signup'),

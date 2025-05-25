@@ -240,3 +240,7 @@ def machine_list(request):
 
     serializer = MachineSerializer(qs, many=True)
     return Response(serializer.data)
+def machine_list_page(request):
+    return render(request, 'laundry/available_machines.html')
+def mypage(request):
+    return render(request, 'laundry/mypage.html')
