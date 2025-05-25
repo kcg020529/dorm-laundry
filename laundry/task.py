@@ -2,7 +2,6 @@ from celery import shared_task
 from .models import Reservation, PushSubscription, Machine, WaitList
 from django.conf import settings
 from pywebpush import webpush, WebPushException
-from .task import send_reservation_reminder
 from django.utils import timezone
 from datetime import timedelta
 import json
