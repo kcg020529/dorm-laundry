@@ -114,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -137,3 +137,6 @@ LOGOUT_REDIRECT_URL = '/laundry/login/'  # 로그아웃 후 이동
 
 # 로그인하지 않은 사용자가 로그인 페이지로 강제 이동될 때 쓸 URL
 LOGIN_URL = '/laundry/login/'
+
+#커스텀 유저 모델 사용
+AUTH_USER_MODEL = 'laundry.user'
