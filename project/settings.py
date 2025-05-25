@@ -66,3 +66,17 @@ WEBPUSH_SETTINGS = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 TIME_ZONE = 'Asia/Seoul'
 USE_TZ = True
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'laundry_db',
+        'USER': 'root',            # MySQL 사용자명
+        'PASSWORD': 'your_pass',   # MySQL 비밀번호
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
+}
