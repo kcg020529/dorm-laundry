@@ -55,13 +55,13 @@ REST_FRAMEWORK = {
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 
-# 이메일 설정 예시 (Gmail SMTP)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your_email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your_app_password'
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY":  "BNc0…(여기에_발급받은_공개키)",
+    "VAPID_PRIVATE_KEY": "KJH7…(여기에_발급받은_비밀키)",
+    "VAPID_CLAIMS": {
+        "sub": "mailto:admin@yourdomain.com"
+    }
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 TIME_ZONE = 'Asia/Seoul'
