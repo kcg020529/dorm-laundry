@@ -1,277 +1,163 @@
-from django.shortcuts import render, redirect
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, get_user_model
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
-from .task import send_reservation_reminder
 
-from .models import Machine, Reservation, User, Building, WaitList
-from .serializers import (
-    WaitListSerializer,
-    ReservationSerializer,
-    BuildingCountSerializer,
-    MachineSerializer,
-    WashingMachineSerializer,
-    DryerSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authtoken.views import obtain_auth_token
+
+from .models import Machine, Reservation, WaitList
+from .task import (
+    send_reservation_reminder,
+    start_reservation_task,
+    end_reservation_task
 )
-from django.contrib.auth.forms import UserCreationForm
-from rest_framework.permissions import AllowAny
-from django.db.models import Count, Q
 
-# 회원가입 뷰 (Django 기본 폼 사용)
-def signup(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'laundry/signup.html', {'form': form})
+User = get_user_model()
 
-# 예약 생성 API
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_reservation(request):
-    student_id = request.data.get('student_id')
-    machine_id = request.data.get('machine_id')
-    start_time = request.data.get('start_time')
-    end_time   = request.data.get('end_time')
+# ── 페이지 뷰 ──
 
-    if not (student_id and machine_id and start_time and end_time):
-        return Response(
-            {'error': '모든 필드를 입력해주세요.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    try:
-        user    = User.objects.get(student_id=student_id)
-        machine = Machine.objects.get(pk=machine_id)
-    except (User.DoesNotExist, Machine.DoesNotExist):
-        return Response(
-            {'error': '유효하지 않은 사용자 또는 기기입니다.'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    if Reservation.objects.filter(
-        machine=machine,
-        start_time__lt=end_time,
-        end_time__gt=start_time
-    ).exists():
-        return Response(
-            {'error': '이미 예약된 시간대입니다.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    reservation = Reservation.objects.create(
-        user=user,
-        machine=machine,
-        start_time=start_time,
-        end_time=end_time
-    )
-    machine.is_in_use = True
-    machine.save()
-
-    # 푸시 알림 스케줄링
-    for label, offset in [('10분 전', timedelta(minutes=10)), ('시작 시각', timedelta())]:
-        eta = reservation.start_time - offset
-        if timezone.is_naive(eta):
-            eta = timezone.make_aware(eta, timezone.get_current_timezone())
-        send_reservation_reminder.apply_async(
-            args=[reservation.id, label],
-            eta=eta
-        )
-
-    return Response(
-        ReservationSerializer(reservation).data,
-        status=status.HTTP_201_CREATED
-    )
-
-# 예약 취소 API
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def cancel_reservation(request, pk):
-    try:
-        reservation = Reservation.objects.get(pk=pk)
-    except Reservation.DoesNotExist:
-        return Response(
-            {'error': '예약을 찾을 수 없습니다.'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    machine = reservation.machine
-    reservation.delete()
-    machine.is_in_use = False
-    machine.save()
-
-    # 대기열에서 다음 사용자 자동 승격
-    next_wait = WaitList.objects.filter(machine=machine).order_by('created_at').first()
-    if next_wait:
-        start = timezone.now()
-        end = start + timedelta(hours=1)
-        new_res = Reservation.objects.create(
-            user=next_wait.user,
-            machine=machine,
-            start_time=start,
-            end_time=end
-        )
-        machine.is_in_use = True
-        machine.save()
-        next_wait.delete()
-
-        for label, offset in [('10분 전', timedelta(minutes=10)), ('시작 시각', timedelta())]:
-            eta = start - offset
-            if timezone.is_naive(eta):
-                eta = timezone.make_aware(eta, timezone.get_current_timezone())
-            send_reservation_reminder.apply_async(
-                args=[new_res.id, label],
-                eta=eta
-            )
-
-    return Response(
-        {'message': '예약이 취소되었습니다.'},
-        status=status.HTTP_200_OK
-    )
-
-# 대기열 참가 API
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def join_waitlist(request):
-    student_id = request.data.get('student_id')
-    machine_id = request.data.get('machine_id')
-
-    if not (student_id and machine_id):
-        return Response(
-            {'error': '학번과 기기 ID가 필요합니다.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    try:
-        user = User.objects.get(student_id=student_id)
-        machine = Machine.objects.get(pk=machine_id)
-    except (User.DoesNotExist, Machine.DoesNotExist):
-        return Response(
-            {'error': '유효하지 않은 사용자 또는 기기입니다.'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    if not machine.is_in_use:
-        return Response(
-            {'error': '기기가 사용 중일 때만 대기열 등록이 가능합니다.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    wait, created = WaitList.objects.get_or_create(user=user, machine=machine)
-    serializer = WaitListSerializer(wait)
-    return Response(
-        serializer.data,
-        status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
-    )
-
-
-# 대기열 목록 조회 API
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_waitlist(request, machine_id):
-    try:
-        machine = Machine.objects.get(pk=machine_id)
-    except Machine.DoesNotExist:
-        return Response(
-            {'error': '존재하지 않는 기기입니다.'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    waitlist = WaitList.objects.filter(machine=machine).order_by('created_at')
-    serializer = WaitListSerializer(waitlist, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def washer_list(request):
-    qs = Machine.objects.filter(machine_type='washer')
-    serializer = WashingMachineSerializer(qs, many=True)
-    return Response(serializer.data)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def dryer_list(request):
-    qs = Machine.objects.filter(machine_type='dryer')
-    serializer = DryerSerializer(qs, many=True)
-    return Response(serializer.data)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def building_list_with_counts(request):
-    """
-    A~E 동별 세탁기(washer)·건조기(dryer) 총 개수를 함께 반환합니다.
-    """
-    qs = Building.objects.annotate(
-        washer_count=Count('machines', filter=Q(machines__machine_type='washer')),
-        dryer_count=Count('machines', filter=Q(machines__machine_type='dryer'))
-    ).order_by('name')
-    serializer = BuildingCountSerializer(qs, many=True)
-    return Response(serializer.data)
-
-@permission_classes([IsAuthenticated])
-@api_view(['GET'])
 def index_page(request):
-    """
-    로그인 후 첫 화면. 기계 선택 템플릿을 렌더링합니다.
-    """
-    return render(request, 'laundry/select_machine.html')
+    return redirect('machine_list_page')
+
+@login_required
+def machine_list_page(request):
+    machines = Machine.objects.all()
+    return render(request, 'laundry/machine_list.html', {'machines': machines})
+
+@login_required
+def mypage(request):
+    reservations = Reservation.objects.filter(user=request.user).order_by('-start_time')
+    waitlist = WaitList.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'laundry/mypage.html', {
+        'reservations': reservations,
+        'waitlist': waitlist
+    })
+
+@login_required
+def building_list_with_counts(request):
+    # 각 동별 사용 중인 기계 수를 JSON으로 반환
+    buildings = Machine.objects.values_list('building', flat=True).distinct()
+    data = []
+    for b in buildings:
+        count = Machine.objects.filter(building=b, is_in_use=True).count()
+        data.append({'building': b, 'count': count})
+    return JsonResponse(data, safe=False)
+
+# ── API 뷰 ──
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def machine_list(request):
-    """
-    ?type=washer|dryer, &building=<id> 파라미터로 필터링 가능한
-    전체 기계 조회 API
-    """
-    m_type = request.GET.get('type')
-    b_id   = request.GET.get('building')
-
-    qs = Machine.objects.all()
-    if m_type in ('washer', 'dryer'):
-        qs = qs.filter(machine_type=m_type)
-    if b_id:
-        qs = qs.filter(building_id=b_id)
-
-    serializer = MachineSerializer(qs, many=True)
-    return Response(serializer.data)
-def machine_list_page(request):
-    return render(request, 'laundry/available_machines.html')
-def mypage(request):
-    return render(request, 'laundry/mypage.html')
-
-@api_view(['GET'])
-@permission_classes([AllowAny])  # 로그인 없이 접근 가능
 def get_machine_list_api(request):
-    machines = Machine.objects.select_related('building').all()
+    machines = Machine.objects.all()
     data = [
         {
             'id': m.id,
             'name': m.name,
-            'is_in_use': m.is_in_use,
-            'building': {
-                'id': m.building.id,
-                'name': m.building.name
-            }
+            'machine_type': m.machine_type,
+            'building': m.building,
+            'is_in_use': m.is_in_use
         }
         for m in machines
     ]
     return Response(data)
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def get_remaining_time_api(request):
     machine_id = request.GET.get('machine_id')
     try:
         machine = Machine.objects.get(pk=machine_id)
-        reservation = Reservation.objects.filter(machine=machine).latest('end_time')
-        remaining_minutes = int((reservation.end_time - timezone.now()).total_seconds() // 60)
-        remaining_minutes = max(remaining_minutes, 0)
-        return Response({'minutes': remaining_minutes})
-    except (Machine.DoesNotExist, Reservation.DoesNotExist):
-        return Response({'minutes': 0})
+        now = timezone.now()
+        active = Reservation.objects.filter(
+            machine=machine,
+            start_time__lte=now,
+            end_time__gt=now
+        ).first()
+        minutes = (active.end_time - now).total_seconds() // 60 if active else None
+        return Response({'minutes': int(minutes) if minutes is not None else None})
+    except Machine.DoesNotExist:
+        return Response({'minutes': None}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_reservation(request):
+    user = request.user
+    machine_id = request.data.get('machine_id')
+    start = request.data.get('start_time')
+    end = request.data.get('end_time')
+    if not (machine_id and start and end):
+        return Response({'error': '모든 필드를 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+    machine = get_object_or_404(Machine, pk=machine_id)
+
+    new_res = Reservation.objects.create(
+        user=user,
+        machine=machine,
+        start_time=start,
+        end_time=end
+    )
+    # 상태 토글 스케줄
+    start_reservation_task.apply_async(args=[new_res.id], eta=start)
+    end_reservation_task.apply_async(args=[new_res.id], eta=end)
+    # 알림 스케줄
+    for label, offset in [('10분 전', timedelta(minutes=10)), ('시작 시각', timedelta())]:
+        eta = timezone.make_naive(start, timezone.get_current_timezone()) - offset
+        send_reservation_reminder.apply_async(args=[new_res.id, label], eta=eta)
+
+    return Response({'message': '예약이 생성되었습니다.'}, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cancel_reservation(request, pk=None):
+    # URL 패턴에 <int:pk> 사용 시
+    reservation = get_object_or_404(Reservation, pk=pk if pk else request.data.get('reservation_id'))
+    machine = reservation.machine
+    reservation.delete()
+    machine.is_in_use = False
+    machine.save()
+    return Response({'message': '예약이 취소되었습니다.'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def join_waitlist(request):
+    user = request.user
+    machine_id = request.data.get('machine_id')
+    machine = get_object_or_404(Machine, pk=machine_id)
+    WaitList.objects.get_or_create(user=user, machine=machine)
+    return Response({'message': '대기열에 참여했습니다.'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_waitlist(request, machine_id):
+    machine = get_object_or_404(Machine, pk=machine_id)
+    waiters = WaitList.objects.filter(machine=machine).order_by('created_at')
+    data = [{'user': w.user.student_id, 'joined_at': w.created_at} for w in waiters]
+    return Response(data)
+
+# ── 회원가입 뷰 (AllowAny) ──
+
+def signup(request):
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+        error = None
+        if not (student_id and password and password2):
+            error = '모든 필드를 입력해주세요.'
+        elif password != password2:
+            error = '비밀번호가 일치하지 않습니다.'
+        elif User.objects.filter(student_id=student_id).exists():
+            error = '이미 존재하는 사용자입니다.'
+        if error:
+            return render(request, 'laundry/signup.html', {'error': error})
+        user = User(student_id=student_id)
+        user.set_password(password)
+        user.save()
+        login(request, user)
+        return redirect('machine_list_page')
+    return render(request, 'laundry/signup.html')
