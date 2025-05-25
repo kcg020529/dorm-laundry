@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('laundry.urls')),
-    path('', lambda request: redirect('login/')),
+    path('laundry/', include('laundry.urls')),
+    path('', RedirectView.as_view(url='/laundry/login/')),  # 로그인 페이지로 리다이렉트
 ]

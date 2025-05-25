@@ -16,11 +16,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 
 urlpatterns = [
+    # 루트('/')로 들어오면 '/laundry/'로 이동
+    path(
+        '',
+        RedirectView.as_view(url='/laundry/', permanent=False),
+        name='root-redirect'
+    ),
+    
+    # 관리자 사이트
     path('admin/', admin.site.urls),
-    path('laundry/', include('laundry.urls')),  # 네 앱의 urls.py 연결
 
+    # laundry 앱 URL
+    path('laundry/', include('laundry.urls')),  # 네 앱의 urls.py 연결
 ]
 
 

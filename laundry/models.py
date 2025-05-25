@@ -18,24 +18,34 @@ class User(models.Model):
     def __str__(self):
         return self.student_id
 
+
 class Building(models.Model):
-    name = models.CharField(max_length=1)  # A, B, C, D, E
+    name = models.CharField(max_length=1)
 
     def __str__(self):
         return f"{self.name}동"
 
-class WashingMachine(models.Model):
-    building = models.ForeignKey(Building, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    is_in_use = models.BooleanField(default=False)
-    description = models.TextField(default='')  # 새 필드
+class Machine(models.Model):
+    MACHINE_TYPES = [
+        ('washer', '세탁기'),
+        ('dryer', '건조기'),
+    ]
+
+    building     = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='machines')
+    name         = models.CharField(max_length=10)
+    machine_type = models.CharField(max_length=10, choices=MACHINE_TYPES)
+    is_in_use    = models.BooleanField(default=False)
+    description  = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('building', 'name', 'machine_type')
 
     def __str__(self):
-        return f"{self.building.name}동 - {self.name}"
+        return f"{self.building.name}동 {self.name} ({self.get_machine_type_display()})"
 
 class Reservation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    machine = models.ForeignKey(WashingMachine, on_delete=models.CASCADE)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
@@ -44,7 +54,7 @@ class Reservation(models.Model):
 
 class WaitList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    machine = models.ForeignKey(WashingMachine, on_delete=models.CASCADE)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class PushSubscription(models.Model):

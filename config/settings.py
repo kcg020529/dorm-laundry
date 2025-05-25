@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'laundry',
 ]
 
@@ -128,3 +129,10 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 로그인/로그아웃 리디렉션
+LOGIN_REDIRECT_URL = '/laundry/'  # 로그인 후 이동
+LOGOUT_REDIRECT_URL = '/laundry/login/'  # 로그아웃 후 이동
+
+# 로그인하지 않은 사용자가 로그인 페이지로 강제 이동될 때 쓸 URL
+LOGIN_URL = '/laundry/login/'
