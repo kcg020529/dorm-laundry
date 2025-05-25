@@ -17,7 +17,7 @@ from .serializers import (
     DryerSerializer
 )
 from django.contrib.auth.forms import UserCreationForm
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from django.db.models import Count, Q
 
 # 회원가입 뷰 (Django 기본 폼 사용)
@@ -244,3 +244,34 @@ def machine_list_page(request):
     return render(request, 'laundry/available_machines.html')
 def mypage(request):
     return render(request, 'laundry/mypage.html')
+
+@api_view(['GET'])
+@permission_classes([AllowAny])  # 로그인 없이 접근 가능
+def get_machine_list_api(request):
+    machines = Machine.objects.select_related('building').all()
+    data = [
+        {
+            'id': m.id,
+            'name': m.name,
+            'is_in_use': m.is_in_use,
+            'building': {
+                'id': m.building.id,
+                'name': m.building.name
+            }
+        }
+        for m in machines
+    ]
+    return Response(data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_remaining_time_api(request):
+    machine_id = request.GET.get('machine_id')
+    try:
+        machine = Machine.objects.get(pk=machine_id)
+        reservation = Reservation.objects.filter(machine=machine).latest('end_time')
+        remaining_minutes = int((reservation.end_time - timezone.now()).total_seconds() // 60)
+        remaining_minutes = max(remaining_minutes, 0)
+        return Response({'minutes': remaining_minutes})
+    except (Machine.DoesNotExist, Reservation.DoesNotExist):
+        return Response({'minutes': 0})

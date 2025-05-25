@@ -15,7 +15,9 @@ from .views import (
     join_waitlist,
     list_waitlist,
     machine_list_page,
-    mypage
+    mypage,
+    get_machine_list_api,
+    get_remaining_time_api
 )
 
 app_name = 'laundry'
@@ -53,4 +55,7 @@ urlpatterns = [
     # 대기열 참가 / 조회
     path('waitlist/join/', join_waitlist, name='join_waitlist'),
     path('waitlist/<int:machine_id>/', list_waitlist, name='list_waitlist'),
+
+    path('api/machines/', get_machine_list_api, name='get_machine_list_api'),
+    path('api/remaining-time/', get_remaining_time_api, name='get_remaining_time_api'),
 ]
