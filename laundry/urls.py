@@ -2,10 +2,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('signup/', views.signup), 
     path('login/', views.login_page),
     path('login/api/', views.login),
     path('machines/view/', views.machine_list_page, name='machine_list_page'),
     path('machines/', views.list_machines),
+    path('machines/waitlist/<int:machine_id>/', views.list_waitlist),
     path('reservations/', views.create_reservation),
     path('reservations/list/', views.user_reservations),
     path('reservations/<int:pk>/', views.cancel_reservation),
