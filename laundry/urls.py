@@ -5,7 +5,6 @@ urlpatterns = [
     path('login/', views.login_page),
     path('login/api/', views.login),
     path('machines/view/', views.machine_list_page, name='machine_list_page'),
-    path('machines/view/', views.machine_list_page),
     path('machines/', views.list_machines),
     path('reservations/', views.create_reservation),
     path('reservations/list/', views.user_reservations),
