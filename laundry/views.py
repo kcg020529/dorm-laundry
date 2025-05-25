@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
+from .task import send_reservation_reminder
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -48,34 +49,56 @@ def list_machines(request):
 # — 예약 생성
 @api_view(['POST'])
 def create_reservation(request):
+    # 1) 사용자 조회
     student_id = request.data.get('student_id')
     try:
         user = User.objects.get(student_id=student_id)
     except User.DoesNotExist:
-        return Response({'error': '사용자를 찾을 수 없습니다.'}, status=404)
+        return Response({'error': '사용자를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
+    # 2) 요청 데이터 검증
     serializer = CreateReservationSerializer(data=request.data)
     if not serializer.is_valid():
-        return Response(serializer.errors, status=400)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # 3) 예약 가능 여부 확인 (시간 중복 방지)
     machine = serializer.validated_data['machine']
     start_time = serializer.validated_data['start_time']
     end_time = serializer.validated_data['end_time']
-
-    # 예약 시간 중복 방지
     overlap = Reservation.objects.filter(
         machine=machine,
         start_time__lt=end_time,
         end_time__gt=start_time
     )
     if overlap.exists():
-        return Response({'error': '해당 시간대에 이미 예약이 있습니다.'}, status=409)
+        return Response({'error': '해당 시간대에 이미 예약이 있습니다.'}, status=status.HTTP_409_CONFLICT)
 
+    # 4) 예약 생성 및 세탁기 상태 업데이트
     reservation = serializer.save(user=user)
     machine.is_in_use = True
     machine.save()
 
-    return Response(ReservationSerializer(reservation).data, status=201)
+    # 5) 웹푸시 알림 스케줄링
+    #   a) 예약 10분 전
+    eta_10min = reservation.start_time - timedelta(minutes=10)
+    if timezone.is_naive(eta_10min):
+        eta_10min = timezone.make_aware(eta_10min, timezone.get_current_timezone())
+    send_reservation_reminder.apply_async(
+        args=[reservation.id, '10분 전'],
+        eta=eta_10min
+    )
+
+    #   b) 예약 시작 시각
+    eta_start = reservation.start_time
+    if timezone.is_naive(eta_start):
+        eta_start = timezone.make_aware(eta_start, timezone.get_current_timezone())
+    send_reservation_reminder.apply_async(
+        args=[reservation.id, '시작 시각'],
+        eta=eta_start
+    )
+
+    # 6) 생성된 예약 정보 반환
+    return Response(ReservationSerializer(reservation).data, status=status.HTTP_201_CREATED)
 
 
 # — 내 예약 목록 조회
