@@ -5,6 +5,21 @@
     <meta charset="UTF-8">
     <title>Hufs Dorm Laundry Reservation</title>
     <link rel="stylesheet" href="{% static 'style.css' %}">
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+            document.cookie.split(';').forEach(c => {
+                const cookie = c.trim();
+                if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            });
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+    </script>
 </head>
 <body>
     <header class="navbar">
