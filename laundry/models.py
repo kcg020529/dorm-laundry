@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
+from django.conf import settings
+from django.db import models
+from django.contrib.postgres.fields import JSONField  # Django 3.1+ 에선 models.JSONField
 
 class User(models.Model):
     student_id = models.CharField(max_length=10, unique=True)
@@ -43,3 +46,11 @@ class WaitList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     machine = models.ForeignKey(WashingMachine, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class PushSubscription(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    subscription_info = models.JSONField()  # 브라우저에서 받은 { endpoint, keys: { p256dh, auth } }
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"PushSub: {self.user.student_id}"
