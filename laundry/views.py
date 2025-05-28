@@ -59,6 +59,18 @@ def building_list_with_counts(request):
         data.append({'building': b, 'count': count})
     return JsonResponse(data, safe=False)
 
+@login_required
+def select_machine_page(request):
+    type_param = request.GET.get('type', 'washer')
+    selected_building = request.GET.get('building', '')
+    buildings = ['A', 'B', 'C', 'D', 'E']  # 필요에 따라 동 추가/삭제
+
+    return render(request, 'laundry/select_machine.html', {
+        'type': type_param,
+        'selected_building': selected_building,
+        'buildings': buildings,
+    })
+
 # ── API 뷰 ──
 
 @api_view(['GET'])
