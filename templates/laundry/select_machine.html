@@ -29,10 +29,16 @@ async function fetchBuildings() {
   });
 }
 
+// 선택된 동·기계 종류로 기계 리스트 조회
 async function fetchMachines() {
   const bId = document.getElementById('building').value;
   const type = document.querySelector('input[name="type"]:checked').value;
-  const res = await fetch("{% url 'laundry:get_machine_list_api' %}?type=" + type + "&building=" + bId, { credentials: 'include' });
+  const res = await fetch(
+      window.apiEndpoints.listMachines
+      + '?type=' + t
+      + '&building=' + bId,
+      { credentials: 'include' }
+    );
   const machines = await res.json();
   const list = document.getElementById('machine-list');
   list.innerHTML = machines.map(m =>

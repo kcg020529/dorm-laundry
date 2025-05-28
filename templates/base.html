@@ -5,6 +5,13 @@
     <meta charset="UTF-8">
     <title>Hufs Dorm Laundry Reservation</title>
     <link rel="stylesheet" href="{% static 'style.css' %}">
+    <!-- 전역 API 엔드포인트 선언 -->
+    <script>
+        window.apiEndpoints = {
+            listMachines: "{% url 'laundry:get_machine_list_api' %}",
+            remainingTime: "{% url 'laundry:get_remaining_time_api' %}"
+        };
+    </script>
     <script>
         function getCookie(name) {
             let cookieValue = null;
@@ -39,12 +46,11 @@
             </ul>
         </nav>
 
-        <a class="login-btn" href="/laundry/login/">Log In</a>
+        <a class="login-btn" href="{% url 'laundry:login' %}">Log In</a>
     </header>
 
     <main class="main-section">
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
 </body>
 </html>
