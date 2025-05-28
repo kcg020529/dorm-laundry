@@ -24,7 +24,7 @@ User = get_user_model()
 # ── 페이지 뷰 ──
 
 def index_page(request):
-    return redirect('laundry:machine_list_page')
+    return render(request, 'index.html')
 
 @login_required
 def machine_list_page(request):
