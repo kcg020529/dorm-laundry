@@ -1,11 +1,30 @@
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
 *.sqlite3
-*.log
-.env
-db.sqlite3
-/media/
-.venv/
+
+# Virtual Environment
 venv/
+ENV/
+env/
+
+# Django static/media (optional)
+static/
+media/
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# OS/System
+.DS_Store
+Thumbs.db
+
+# Environment settings
+*.env
+.env
+*.pem
+
+# Gunicorn logs
+*.log
+gunicorn.pid
