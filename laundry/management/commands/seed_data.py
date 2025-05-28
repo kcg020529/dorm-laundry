@@ -5,9 +5,9 @@ class Command(BaseCommand):
     help = "Seed initial buildings and machines"
 
     seed_config = {
-        'A': {'washers': 3, 'dryers': 2},
-        'B': {'washers': 4, 'dryers': 3},
-        'C': {'washers': 2, 'dryers': 1},
+        'A': {'washers': 10, 'dryers': 7},
+        'B': {'washers': 9, 'dryers': 6},
+        'C': {'washers': 14, 'dryers': 8},
         'D': {'washers': 5, 'dryers': 4},
         'E': {'washers': 3, 'dryers': 3},
     }
