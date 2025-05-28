@@ -9,7 +9,7 @@ ENV/
 env/
 
 # Django static/media (optional)
-#static/
+static/
 media/
 
 # VSCode / IDE
