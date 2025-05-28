@@ -81,11 +81,11 @@ body {
   color: white;
 }
 
-/* 로그인 버튼 */
+/* 회원가입, 로그인 버튼 */
 .signup-btn, .login-btn {
   text-decoration: none;
   display: inline-block;
-  margin-left: 1rem;
+  margin-left: 0.5rem;
   padding: 0.5rem 1rem;
   background-color: #003366;
   color: white;
