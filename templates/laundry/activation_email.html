@@ -1,0 +1,10 @@
+{% autoescape off %}
+안녕하세요 {{ user.email }}님,
+
+HUFS 세탁 예약 서비스에 가입해 주셔서 감사합니다.
+아래 링크를 클릭하여 이메일 인증을 완료해 주세요:
+
+http://{{ domain }}{% url 'laundry:activate' uidb64=uid token=token %}
+
+감사합니다.
+{% endautoescape %}
