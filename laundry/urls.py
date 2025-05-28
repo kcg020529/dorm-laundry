@@ -15,6 +15,7 @@ urlpatterns = [
     path('buildings/', views.building_list_with_counts, name='building_counts'),
     path('machines/washers/', views.washer_list, name='washer_list'),
     path('machines/dryers/', views.dryer_list, name='dryer_list'),
+    path('machines/select/', views.select_machine_page, name='select_machine'),
 
     # ── 인증
     path('login/', auth_views.LoginView.as_view(template_name='laundry/login.html'), name='login'),
