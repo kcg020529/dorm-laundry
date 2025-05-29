@@ -71,22 +71,18 @@ def activate_view(request, uidb64, token):
 def index_page(request):
     return render(request, 'index.html')
 
-@login_required
 def machine_list_page(request):
     machines = Machine.objects.all()
     return render(request, 'laundry/machine_list.html', {'machines': machines})
 
-@login_required
 def washer_list(request):
     machines = Machine.objects.filter(machine_type='washer')
     return render(request, 'laundry/machine_list.html', {'machines': machines})
 
-@login_required
 def dryer_list(request):
     machines = Machine.objects.filter(machine_type='dryer')
     return render(request, 'laundry/machine_list.html', {'machines': machines})
 
-@login_required
 def mypage(request):
     reservations = Reservation.objects.filter(user=request.user).order_by('-start_time')
     waitlist = WaitList.objects.filter(user=request.user).order_by('-created_at')
@@ -95,7 +91,6 @@ def mypage(request):
         'waitlist': waitlist
     })
 
-@login_required
 def building_list_with_counts(request):
     buildings = Machine.objects.values_list('building', flat=True).distinct()
     data = []
@@ -104,7 +99,6 @@ def building_list_with_counts(request):
         data.append({'building': b, 'count': count})
     return JsonResponse(data, safe=False)
 
-@login_required
 def select_machine_page(request):
     type_param = request.GET.get('type', 'washer')
     selected_building = request.GET.get('building', '')
