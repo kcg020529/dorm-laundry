@@ -34,4 +34,7 @@ urlpatterns = [
     # ── 회원가입
     path('signup/', views.signup_view, name='signup'),
     path('activate/<uidb64>/<token>/', views.activate_view, name='activate'),
+
+    # 예약 상태 
+    path('machines/status/', views.machine_status_list, name='machine_status_list'),
 ]

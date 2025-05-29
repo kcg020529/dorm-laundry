@@ -210,3 +210,14 @@ def list_waitlist(request, machine_id):
     waiters = WaitList.objects.filter(machine=machine).order_by('created_at')
     data = [{'user': w.user.student_id, 'joined_at': w.created_at} for w in waiters]
     return Response(data)
+
+# 실시간 예약 / 대기 상태 갱신
+def machine_status_list(request):
+    machines = Machine.objects.all()
+    data = []
+    for machine in machines:
+        data.append({
+            'machine_id': machine.id,
+            'status': machine.get_status_display(),  # Assuming status is a ChoiceField
+        })
+    return JsonResponse(data, safe=False)
