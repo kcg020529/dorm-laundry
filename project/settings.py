@@ -37,12 +37,13 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'laundry_db',
-        'USER': 'your_user',
-        'PASSWORD': 'your_password',
+        'USER': 'test',
+        'PASSWORD': 'your_password',  # 여기랑 MySQL에 입력한 비번이 정확히 일치해야 해
         'HOST': 'localhost',
         'PORT': '3306',
     }
 }
+
 
 ROOT_URLCONF = 'project.urls'
 

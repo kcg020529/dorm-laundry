@@ -83,9 +83,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
+<<<<<<< HEAD
         'NAME': 'laundry_db',
         'USER': 'dormuser',
         'PASSWORD': '1234',
+=======
+        'NAME': 'laundry_app',
+        'USER': 'your_user',
+        'PASSWORD': 'your_password',
+>>>>>>> 4540a1b8889c3e7b9ce209f5f6bd83ba6f186c43
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
@@ -130,8 +136,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -146,5 +152,3 @@ LOGIN_URL = '/laundry/login/'
 
 #커스텀 유저 모델 사용
 AUTH_USER_MODEL = 'laundry.user'
-
-ALLOWED_HOSTS = ['52.78.47.153']
