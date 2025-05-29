@@ -103,6 +103,84 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* ================================
+   회원가입 페이지 스타일
+   ================================ */
+.signup-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 1rem;
+  background: #f5f5f5;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 2.5rem;
+  margin: 2rem auto;
+}
+
+.signup-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.75rem;
+  color: #333;
+}
+
+.signup-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.signup-form input {
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 0.3rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.signup-form .form-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.password-rules {
+  margin: 0 0 1rem 0;
+  padding-left: 1.2rem;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.password-rules li {
+  margin-bottom: 0.4rem;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  text-align: center;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+  background: #0056b3;
+  transform: scale(1.02);
+}
+
 /* 메인 섹션 */
 .main-section {
   height: calc(100vh - 80px);
