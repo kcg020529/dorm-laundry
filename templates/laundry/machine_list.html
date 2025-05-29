@@ -4,60 +4,16 @@
 {% block content %}
 <div class="machine-container">
   <h2>기계 현황</h2>
-  <div id="machineList">로딩 중...</div>
+  <ul id="machineList">
+    {% for m in machines %}
+      <li>{{ m.building }}동 {{ m.name }} — 사용중: {% if m.is_in_use %}예{% else %}아니오{% endif %}</li>
+    {% empty %}
+      <li>기계가 없습니다.</li>
+    {% endfor %}
+  </ul>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'main.js' %}"></script>
-{% endblock %}
-```
-
-### templates/laundry/select_machine.html
-```django
-{% extends 'base.html' %}
-{% load static %}
-
-{% block content %}
-<h1>동 및 기계 선택</h1>
-<label for="building">동 선택:</label>
-<select id="building"></select>
-
-<fieldset>
-  <legend>기계 종류</legend>
-  <label><input type="radio" name="type" value="washer" checked> 세탁기</label>
-  <label><input type="radio" name="type" value="dryer"> 건조기</label>
-</fieldset>
-
-<button id="load-machines">조회</button>
-<ul id="machine-list"></ul>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'main.js' %}"></script>
-<script>
-async function fetchBuildings() {
-  const res = await fetch("{% url 'laundry:building_counts' %}", { credentials: 'include' });
-  const data = await res.json();
-  const sel = document.getElementById('building');
-  data.forEach(b => {
-    sel.innerHTML += `<option value="${b.building}">${b.building}동 (사용 중: ${b.count}대)</option>`;
-  });
-}
-
-async function fetchMachines() {
-  const b = document.getElementById('building').value;
-  const t = document.querySelector('input[name="type"]:checked').value;
-  const res = await fetch("{% url 'laundry:get_machine_list_api' %}?type="+t+"&building="+b, { credentials: 'include' });
-  const machines = await res.json();
-  document.getElementById('machine-list').innerHTML = machines.map(m =>
-    `<li>${m.building}동 ${m.name} — 사용중: ${m.is_in_use ? '예' : '아니오'}</li>`
-  ).join('');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  fetchBuildings();
-  document.getElementById('load-machines').addEventListener('click', fetchMachines);
-});
-</script>
 {% endblock %}
