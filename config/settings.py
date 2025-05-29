@@ -83,15 +83,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-<<<<<<< HEAD
         'NAME': 'laundry_db',
         'USER': 'dormuser',
         'PASSWORD': '1234',
-=======
-        'NAME': 'laundry_app',
-        'USER': 'your_user',
-        'PASSWORD': 'your_password',
->>>>>>> 4540a1b8889c3e7b9ce209f5f6bd83ba6f186c43
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
