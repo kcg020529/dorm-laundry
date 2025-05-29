@@ -82,7 +82,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'laundry_app',
         'USER': 'root',
-        'PASSWORD': 'hufs',
+        'PASSWORD': 'test',
         'HOST': 'localhost',
         'PORT': '3306',
     }
