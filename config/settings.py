@@ -81,8 +81,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'laundry_app',
-        'USER': 'test',
-        'PASSWORD': 'nicky1436@',
+        'USER': 'your_user',
+        'PASSWORD': 'your_password',
         'HOST': 'localhost',
         'PORT': '3306',
     }
