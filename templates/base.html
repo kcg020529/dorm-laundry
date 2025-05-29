@@ -45,9 +45,10 @@
                 <li><a href="#">이용안내</a></li>
             </ul>
         </nav>
-
-        <a class="login-btn" href="{% url 'laundry:login' %}">로그인</a>
-        <a class="signup-btn" href="{% url 'laundry:signup' %}">회원가입</a>
+        <div class="auth-buttons">
+            <a class="login-btn" href="{% url 'laundry:login' %}">로그인</a>
+            <a class="signup-btn" href="{% url 'laundry:signup' %}">회원가입</a>
+        </div>
     </header>
 
     <main class="main-section">

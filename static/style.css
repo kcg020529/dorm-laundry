@@ -5,8 +5,11 @@
   font-family: 'Arial', sans-serif;
 }
 
-body {
-  /* background 속성 제거 */
+/* 로그인, 회원가입 버튼 오른쪽 */
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* 상단바 기본 구조 */
