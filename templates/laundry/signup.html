@@ -1,48 +1,58 @@
 {# templates/laundry/signup.html #}
-{% extends 'base.html' %}
+{% extends 'laundry/base.html' %}
 
 {% block content %}
-<div class="signup-page">
-  <div class="signup-card">
-    <h2 class="signup-title">회원가입</h2>
-    <form method="post" class="signup-form">
-      {% csrf_token %}
+  <!-- signup 페이지만 적용되는 main-section 오버라이드 -->
+  <style>
+    .main-section {
+      /* 네비게이션 바로 아래서부터 시작하고,
+         수직 중앙 정렬(align-items: center)을 해제 */
+      align-items: flex-start;
+      padding-top: 4rem;
+    }
+  </style>
 
-      <div class="form-group">
-        {{ form.student_id.label_tag }}
-        {{ form.student_id }}
-        <small class="form-text">학번을 숫자만 입력해주세요.</small>
-        {{ form.student_id.errors }}
-      </div>
+  <div class="signup-page">
+    <div class="signup-card">
+      <h2 class="signup-title">회원가입</h2>
+      <form method="post" class="signup-form">
+        {% csrf_token %}
 
-      <div class="form-group">
-        {{ form.email.label_tag }}
-        {{ form.email }}
-        <small class="form-text">@hufs.ac.kr 형식의 학교 이메일만 사용 가능합니다.</small>
-        {{ form.email.errors }}
-      </div>
+        <div class="form-group">
+          {{ form.student_id.label_tag }}
+          {{ form.student_id }}
+          <small class="form-text">학번을 숫자만 입력해주세요.</small>
+          {{ form.student_id.errors }}
+        </div>
 
-      <div class="form-group">
-        {{ form.password1.label_tag }}
-        {{ form.password1 }}
-        {{ form.password1.errors }}
-      </div>
-      <ul class="password-rules">
-        <li>개인 정보(학번·이메일)와 너무 비슷한 비밀번호는 사용할 수 없습니다.</li>
-        <li>최소 8자 이상이어야 합니다.</li>
-        <li>흔히 사용되는 비밀번호는 사용할 수 없습니다.</li>
-        <li>숫자로만 구성된 비밀번호는 사용할 수 없습니다.</li>
-      </ul>
+        <div class="form-group">
+          {{ form.email.label_tag }}
+          {{ form.email }}
+          <small class="form-text">@hufs.ac.kr 형식의 학교 이메일만 사용 가능합니다.</small>
+          {{ form.email.errors }}
+        </div>
 
-      <div class="form-group">
-        {{ form.password2.label_tag }}
-        {{ form.password2 }}
-        <small class="form-text">위와 동일한 비밀번호를 입력해주세요.</small>
-        {{ form.password2.errors }}
-      </div>
+        <div class="form-group">
+          {{ form.password1.label_tag }}
+          {{ form.password1 }}
+          {{ form.password1.errors }}
+        </div>
+        <ul class="password-rules">
+          <li>개인 정보(학번·이메일)와 너무 비슷한 비밀번호는 사용할 수 없습니다.</li>
+          <li>최소 8자 이상이어야 합니다.</li>
+          <li>흔히 사용되는 비밀번호는 사용할 수 없습니다.</li>
+          <li>숫자로만 구성된 비밀번호는 사용할 수 없습니다.</li>
+        </ul>
 
-      <button type="submit" class="btn">회원가입</button>
-    </form>
+        <div class="form-group">
+          {{ form.password2.label_tag }}
+          {{ form.password2 }}
+          <small class="form-text">위와 동일한 비밀번호를 입력해주세요.</small>
+          {{ form.password2.errors }}
+        </div>
+
+        <button type="submit" class="btn">회원가입</button>
+      </form>
+    </div>
   </div>
-</div>
 {% endblock %}
