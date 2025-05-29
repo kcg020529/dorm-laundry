@@ -1,24 +1,13 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, get_user_model
-from django.contrib.auth.decorators import login_required
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.contrib.auth.tokens import default_token_generator
-from django.http import JsonResponse
-from django.utils import timezone
-from datetime import timedelta
+{# templates/laundry/signup.html #}
+{% extends 'laundry/base.html' %}
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-
-from .models import Machine, Reservation, WaitList
-from .task import (
-    send_reservation_reminder,
-    start_reservation_task,
-    end_reservation_task
-)
-from .forms import SignUpForm
+{% block content %}
+  <div class="signup-container">
+    <h2>회원가입</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">회원가입</button>
+    </form>
+  </div>
+{% endblock %}
