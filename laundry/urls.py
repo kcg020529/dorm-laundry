@@ -15,9 +15,9 @@ urlpatterns = [
     path('buildings/', views.building_list_with_counts, name='building_counts'),
     path('machines/washers/', views.washer_list, name='washer_list'),
     path('machines/dryers/', views.dryer_list, name='dryer_list'),
+    path('machines/select/', views.select_machine_page, name='select_machine'),
 
     # ── 인증
-    path('signup/', views.signup, name='signup'),
     path('login/', auth_views.LoginView.as_view(template_name='laundry/login.html'), name='login'),
     path('login/api/', obtain_auth_token, name='api_login'),
 
@@ -30,4 +30,8 @@ urlpatterns = [
     # ── API 엔드포인트
     path('api/machines/', views.get_machine_list_api, name='get_machine_list_api'),
     path('api/remaining-time/', views.get_remaining_time_api, name='get_remaining_time_api'),
+
+    # ── 회원가입
+    path('signup/', views.signup_view, name='signup'),
+    path('activate/<uidb64>/<token>/', views.activate_view, name='activate'),
 ]

@@ -3,8 +3,16 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Hufs Dorm Laundry Reservation</title>
+    <title>test</title>
+    
     <link rel="stylesheet" href="{% static 'style.css' %}">
+    <!-- 전역 API 엔드포인트 선언 -->
+    <script>
+        window.apiEndpoints = {
+            listMachines: "{% url 'laundry:get_machine_list_api' %}",
+            remainingTime: "{% url 'laundry:get_remaining_time_api' %}"
+        };
+    </script>
     <script>
         function getCookie(name) {
             let cookieValue = null;
@@ -38,13 +46,14 @@
                 <li><a href="#">이용안내</a></li>
             </ul>
         </nav>
-
-        <a class="login-btn" href="/laundry/login/">Log In</a>
+        <div class="auth-buttons">
+            <a class="login-btn" href="{% url 'laundry:login' %}">로그인</a>
+            <a class="signup-btn" href="{% url 'laundry:signup' %}">회원가입</a>
+        </div>
     </header>
 
     <main class="main-section">
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
 </body>
 </html>

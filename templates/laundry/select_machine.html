@@ -2,47 +2,94 @@
 {% load static %}
 
 {% block content %}
-<h1>동 및 기계 선택</h1>
-<label for="building">동 선택:</label>
-<select id="building"></select>
+<style>
+  .building-group, .toggle-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  /* 공통 버튼 스타일 */
+  .btn {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    font-size: 1rem;
+    text-decoration: none;
+    text-align: center;
+    border-radius: 0.5rem;
+    transition: background 0.2s;
+    color: #003366;
+    background: none;
+    border: none;
+  }
+  .btn.active {
+    background: #003366;
+    color: #fff;
+  }
+  /* 기계 리스트 스타일 */
+  #machine-list {
+    list-style: none;
+    padding: 0;
+  }
+  #machine-list li {
+    padding: 0.75rem;
+    border-bottom: 1px solid #ddd;
+  }
+</style>
 
-<fieldset>
-  <legend>기계 종류</legend>
-  <label><input type="radio" name="type" value="washer" checked> 세탁기</label>
-  <label><input type="radio" name="type" value="dryer"> 건조기</label>
-</fieldset>
+<h1>동 및 기계 종류 선택</h1>
 
-<button id="load-machines">조회</button>
+<!-- 1) A~E동 링크 그룹 -->
+<div class="building-group">
+  {% for b in buildings %}
+    <a
+      href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ b }}"
+      class="btn {% if b == selected_building %}active{% endif %}"
+    >{{ b }}동</a>
+  {% endfor %}
+</div>
+
+<!-- 2) 세탁기/건조기 링크 토글 -->
+<div class="toggle-group">
+  <a
+    href="{% url 'laundry:select_machine' %}?type=washer&building={{ selected_building }}"
+    class="btn {% if type == 'washer' %}active{% endif %}"
+  >세탁기</a>
+  <a
+    href="{% url 'laundry:select_machine' %}?type=dryer&building={{ selected_building }}"
+    class="btn {% if type == 'dryer' %}active{% endif %}"
+  >건조기</a>
+</div>
+
+<!-- 3) 기계 리스트 -->
 <ul id="machine-list"></ul>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'main.js' %}"></script>
 <script>
-async function fetchBuildings() {
-  const res = await fetch("{% url 'laundry:building_counts' %}", { credentials: 'include' });
-  const data = await res.json();
-  const sel = document.getElementById('building');
-  sel.innerHTML = '';
-  data.forEach(b => {
-    sel.innerHTML += `<option value="${b.building}">${b.building}동 (사용 중: ${b.count}대)</option>`;
+  const selectedType     = "{{ type|escapejs }}";
+  const selectedBuilding = "{{ selected_building|escapejs }}";
+
+  async function fetchMachines() {
+    const url = `${window.apiEndpoints.listMachines}?type=${selectedType}&building=${selectedBuilding}`;
+    const res = await fetch(url, { credentials: 'include' });
+    const machines = await res.json();
+    const list = document.getElementById('machine-list');
+
+    if (!machines.length) {
+      list.innerHTML = '<li>해당 조건의 기계가 없습니다.</li>';
+      return;
+    }
+
+    list.innerHTML = machines
+      .map(m =>
+        `<li>${m.building}동 ${m.name} — ${m.is_in_use ? '사용 중' : '사용 가능'}</li>`
+      ).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (selectedBuilding) {
+      fetchMachines();
+    }
   });
-}
-
-async function fetchMachines() {
-  const bId = document.getElementById('building').value;
-  const type = document.querySelector('input[name="type"]:checked').value;
-  const res = await fetch("{% url 'laundry:get_machine_list_api' %}?type=" + type + "&building=" + bId, { credentials: 'include' });
-  const machines = await res.json();
-  const list = document.getElementById('machine-list');
-  list.innerHTML = machines.map(m =>
-    `<li>${m.building}동 ${m.name} — 사용중: ${m.is_in_use ? '예' : '아니오'}</li>`
-  ).join('');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  fetchBuildings();
-  document.getElementById('load-machines').addEventListener('click', fetchMachines);
-});
 </script>
 {% endblock %}

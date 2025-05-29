@@ -1,16 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.authtoken.views import obtain_auth_token
 
 from .models import Machine, Reservation, WaitList
 from .task import (
@@ -18,30 +21,68 @@ from .task import (
     start_reservation_task,
     end_reservation_task
 )
+from .forms import SignUpForm
 
 User = get_user_model()
+
+# 회원가입 뷰
+def signup_view(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.username = user.email
+            user.is_active = False  # 활성화 전까지 비활성화
+            user.save()
+            # 이메일 전송
+            current_site = get_current_site(request)
+            context = {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+            }
+            subject = 'HUFS 세탁 예약 서비스 이메일 인증'
+            message = render_to_string('laundry/activation_email.html', context)
+            user.email_user(subject, message)
+            return render(request, 'laundry/signup_done.html')
+    else:
+        form = SignUpForm()
+    return render(request, 'laundry/signup.html', {'form': form})
+
+# 이메일 인증 뷰
+def activate_view(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return redirect('laundry:index')
+    else:
+        return render(request, 'laundry/activation_invalid.html')
 
 # ── 페이지 뷰 ──
 
 def index_page(request):
     return render(request, 'index.html')
 
-@login_required
 def machine_list_page(request):
     machines = Machine.objects.all()
     return render(request, 'laundry/machine_list.html', {'machines': machines})
 
-@login_required
 def washer_list(request):
     machines = Machine.objects.filter(machine_type='washer')
     return render(request, 'laundry/machine_list.html', {'machines': machines})
 
-@login_required
 def dryer_list(request):
     machines = Machine.objects.filter(machine_type='dryer')
     return render(request, 'laundry/machine_list.html', {'machines': machines})
 
-@login_required
 def mypage(request):
     reservations = Reservation.objects.filter(user=request.user).order_by('-start_time')
     waitlist = WaitList.objects.filter(user=request.user).order_by('-created_at')
@@ -50,7 +91,6 @@ def mypage(request):
         'waitlist': waitlist
     })
 
-@login_required
 def building_list_with_counts(request):
     buildings = Machine.objects.values_list('building', flat=True).distinct()
     data = []
@@ -58,6 +98,17 @@ def building_list_with_counts(request):
         count = Machine.objects.filter(building=b, is_in_use=True).count()
         data.append({'building': b, 'count': count})
     return JsonResponse(data, safe=False)
+
+def select_machine_page(request):
+    type_param = request.GET.get('type', 'washer')
+    selected_building = request.GET.get('building', '')
+    buildings = ['A', 'B', 'C', 'D', 'E']  # 필요에 따라 동 추가/삭제
+
+    return render(request, 'laundry/select_machine.html', {
+        'type': type_param,
+        'selected_building': selected_building,
+        'buildings': buildings,
+    })
 
 # ── API 뷰 ──
 
@@ -153,17 +204,3 @@ def list_waitlist(request, machine_id):
     waiters = WaitList.objects.filter(machine=machine).order_by('created_at')
     data = [{'user': w.user.student_id, 'joined_at': w.created_at} for w in waiters]
     return Response(data)
-
-# ── Signup 뷰 ──
-
-@permission_classes([AllowAny])
-def signup(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('laundry:machine_list_page')
-    else:
-        form = UserCreationForm()
-    return render(request, 'laundry/signup.html', {'form': form})
