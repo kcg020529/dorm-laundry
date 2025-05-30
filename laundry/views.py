@@ -110,6 +110,33 @@ def select_machine_type(request, building_id):
         'building': building
     })
 
+# laundry/views.py
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Building, Machine  # Building 모델이 필요합니다
+
+# …기존 import & 뷰들…
+
+def select_building(request):
+    """
+    1단계: 동 목록을 보여 줍니다.
+    """
+    buildings = Building.objects.all()
+    return render(request, 'laundry/select_building.html', {
+        'buildings': buildings
+    })
+
+def select_machine_type(request, building_id):
+    """
+    2단계: 선택된 동(building_id)에 대해
+    세탁기/건조기 중 하나를 선택하게 합니다.
+    """
+    building = get_object_or_404(Building, id=building_id)
+    return render(request, 'laundry/select_type.html', {
+        'building': building
+    })
+
+
 def machine_list_page(request):
     """
     3단계: GET 파라미터 ?building=<id>&type=<washer|dryer> 로
