@@ -3,93 +3,89 @@
 
 {% block content %}
 <style>
-  .building-group, .toggle-group {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  /* 공통 버튼 스타일 */
-  .btn {
-    display: inline-block;
-    padding: 0.5rem 1.25rem;
-    font-size: 1rem;
-    text-decoration: none;
+  h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
     text-align: center;
-    border-radius: 0.5rem;
-    transition: background 0.2s;
-    color: #003366;
-    background: none;
-    border: none;
   }
-  .btn.active {
-    background: #003366;
-    color: #fff;
+
+  .building-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* 3열 고정 */
+    gap: 2rem;
+    justify-content: center;
+    max-width: 1000px;
+    margin: 0 auto 3rem auto;
+   }
+
+
+
+  .building-card {
+    width: 220px;
+    height: 220px;
+    background-color: #f4f4f4;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  /* 기계 리스트 스타일 */
-  #machine-list {
-    list-style: none;
-    padding: 0;
+
+  .building-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
   }
-  #machine-list li {
-    padding: 0.75rem;
-    border-bottom: 1px solid #ddd;
+
+  .building-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+  }
+
+  .building-card span {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0.75rem 0;
   }
 </style>
 
-<h1>동 및 기계 종류 선택</h1>
+<div class="card_section_wrapper">
+{% if type == 'washer' %}
+  <h1>세탁기 동 선택</h1>
+{% elif type == 'dryer' %}
+  <h1>건조기 동 선택</h1>
+{% else %}
+  <h1>동 선택</h1>
+{% endif %}
 
-<!-- 1) A~E동 링크 그룹 -->
-<div class="building-group">
+<div class="building-card-grid">
   {% for b in buildings %}
-    <a
-      href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ b }}"
-      class="btn {% if b == selected_building %}active{% endif %}"
-    >{{ b }}동</a>
-  {% endfor %}
+  {% if b == 'D' %}
+    <a class="building-card" style="grid-column: 2;"
+       href="{% url 'laundry:machine_list_page' %}?type={{ type }}&building={{ b }}">
+      <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
+      <span>{{ b }}동</span>
+    </a>
+  {% elif b == 'E' %}
+    <a class="building-card" style="grid-column: 3;"
+       href="{% url 'laundry:machine_list_page' %}?type={{ type }}&building={{ b }}">
+      <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
+      <span>{{ b }}동</span>
+    </a>
+  {% else %}
+    <a class="building-card"
+       href="{% url 'laundry:machine_list_page' %}?type={{ type }}&building={{ b }}">
+      <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
+      <span>{{ b }}동</span>
+    </a>
+  {% endif %}
+{% endfor %}
+ </div>
 </div>
 
-<!-- 2) 세탁기/건조기 링크 토글 -->
-<div class="toggle-group">
-  <a
-    href="{% url 'laundry:select_machine' %}?type=washer&building={{ selected_building }}"
-    class="btn {% if type == 'washer' %}active{% endif %}"
-  >세탁기</a>
-  <a
-    href="{% url 'laundry:select_machine' %}?type=dryer&building={{ selected_building }}"
-    class="btn {% if type == 'dryer' %}active{% endif %}"
-  >건조기</a>
-</div>
-
-<!-- 3) 기계 리스트 -->
-<ul id="machine-list"></ul>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-  const selectedType     = "{{ type|escapejs }}";
-  const selectedBuilding = "{{ selected_building|escapejs }}";
-
-  async function fetchMachines() {
-    const url = `${window.apiEndpoints.listMachines}?type=${selectedType}&building=${selectedBuilding}`;
-    const res = await fetch(url, { credentials: 'include' });
-    const machines = await res.json();
-    const list = document.getElementById('machine-list');
-
-    if (!machines.length) {
-      list.innerHTML = '<li>해당 조건의 기계가 없습니다.</li>';
-      return;
-    }
-
-    list.innerHTML = machines
-      .map(m =>
-        `<li>${m.building}동 ${m.name} — ${m.is_in_use ? '사용 중' : '사용 가능'}</li>`
-      ).join('');
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    if (selectedBuilding) {
-      fetchMachines();
-    }
-  });
-</script>
-{% endblock %}
