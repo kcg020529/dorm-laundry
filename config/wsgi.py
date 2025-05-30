@@ -19,6 +19,6 @@ if not logger.handlers:
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', "dorm_laundry.config.settings")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', "dorm-laundry.config.settings")
 
 application = get_wsgi_application()
