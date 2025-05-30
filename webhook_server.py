@@ -17,7 +17,8 @@ def webhook():
     # git pull
     pull = subprocess.run(["git", "-C", project_path, "pull"], capture_output=True, text=True)
     logger.info("📦 git pull stdout: %s", pull.stdout)
-    logger.error("❌ git pull stderr: %s", pull.stderr)
+    if pull.stderr:
+        logger.error("❌ git pull stderr: %s", pull.stderr)
 
     # collectstatic
     static = subprocess.run(
@@ -27,6 +28,8 @@ def webhook():
         text=True
     )
     logger.info("🧼 collectstatic: %s", static.stdout or static.stderr)
+    if static.stderr:
+        logger.error("❌ collectstatic stderr: %s", static.stderr)
 
     # migrate
     migrate = subprocess.run(
