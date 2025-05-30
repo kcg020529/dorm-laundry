@@ -114,7 +114,6 @@ REST_FRAMEWORK = {
 # Celery
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 
-# 시간대
 TIME_ZONE = 'Asia/Seoul'
 USE_TZ = True
 
