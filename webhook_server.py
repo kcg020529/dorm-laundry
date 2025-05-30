@@ -1,19 +1,23 @@
 from flask import Flask, request
 import subprocess
+import logging
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
 @app.route("/github-webhook", methods=["POST"])
 def webhook():
-    print("✅ Webhook received")
+    logger.info("✅ Webhook received")
 
     project_path = "/home/ec2-user/dorm-laundry"
     python_path = "/home/ec2-user/dorm-laundry/venv/bin/python"
 
     # git pull
     pull = subprocess.run(["git", "-C", project_path, "pull"], capture_output=True, text=True)
-    print("📦 git pull stdout:", pull.stdout)
-    print("❌ git pull stderr:", pull.stderr)
+    logger.info("📦 git pull stdout: %s", pull.stdout)
+    logger.error("❌ git pull stderr: %s", pull.stderr)
 
     # collectstatic
     static = subprocess.run(
@@ -22,7 +26,7 @@ def webhook():
         capture_output=True,
         text=True
     )
-    print("🧼 collectstatic:", static.stdout or static.stderr)
+    logger.info("🧼 collectstatic: %s", static.stdout or static.stderr)
 
     # migrate
     migrate = subprocess.run(
@@ -31,7 +35,7 @@ def webhook():
         capture_output=True,
         text=True
     )
-    print("📂 migrate:", migrate.stdout or migrate.stderr)
+    logger.info("📂 migrate: %s", migrate.stdout or migrate.stderr)
 
     return "OK", 200
 
