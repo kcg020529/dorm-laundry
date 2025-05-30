@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="container">
+    <h2>동을 선택하세요</h2>
+    <ul class="building-list">
+      {% for b in buildings %}
+        <li>
+          <a class="btn btn-outline-primary"
+             href="{% url 'select_machine_type' b.id %}">
+            {{ b.name }}동
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}

@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 class UserManager(BaseUserManager):
     def create_user(self, student_id, password=None, **extra_fields):
@@ -52,6 +53,21 @@ class Reservation(models.Model):
 
     def __str__(self):
         return f"{self.user.student_id} - {self.machine} ({self.start_time} to {self.end_time})"
+    
+class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(end_time__gt=models.F('start_time')),
+                name='end_after_start'
+            ),
+            models.UniqueConstraint(
+                fields=['machine', 'start_time', 'end_time'],
+                name='unique_machine_reservation'
+            ),
+        ]
+        def clean(self):
+            if self.end_time <= self.start_time:
+                raise ValidationError("종료 시간은 시작 시간 이후여야 합니다.")
 
 class WaitList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
