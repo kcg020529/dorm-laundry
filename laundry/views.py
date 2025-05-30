@@ -110,6 +110,29 @@ def select_machine_type(request, building_id):
         'building': building
     })
 
+def machine_list_page(request):
+    """
+    3단계: GET 파라미터 ?building=<id>&type=<washer|dryer> 로
+    해당 동·기계 타입의 머신 리스트를 렌더링합니다.
+    """
+    building_id  = request.GET.get('building')
+    machine_type = request.GET.get('type')
+    # 필수 파라미터가 없으면 1단계로 돌아가기
+    if not building_id or machine_type not in ('washer','dryer'):
+        return redirect('laundry:select_building')
+
+    building = get_object_or_404(Building, id=building_id)
+    machines = Machine.objects.filter(
+        building=building,
+        machine_type=machine_type
+    )
+
+    return render(request, 'laundry/machine_list.html', {
+        'building':     building,
+        'machines':     machines,
+        'machine_type': machine_type,
+    })
+
 # ── API 뷰 ──
 
 @api_view(['GET'])
