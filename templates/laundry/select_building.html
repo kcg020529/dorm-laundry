@@ -1,16 +1,90 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-  <div class="container">
-    <h2>동을 선택하세요</h2>
-    <ul class="building-list">
-      {% for b in buildings %}
-        <li>
-          <a class="btn btn-outline-primary"
-             href="{% url 'select_machine_type' b.id %}">
-            {{ b.name }}동
-          </a>
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
+<style>
+  h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .building-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* 3열 고정 */
+    gap: 2rem;
+    justify-content: center;
+    max-width: 1000px;
+    margin: 0 auto 3rem auto;
+   }
+
+
+
+  .building-card {
+    width: 220px;
+    height: 220px;
+    background-color: #f4f4f4;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .building-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+
+  .building-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+  }
+
+  .building-card span {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0.75rem 0;
+  }
+</style>
+
+<div class="card_section_wrapper">
+{% if type == 'washer' %}
+  <h1>세탁기 동 선택</h1>
+{% elif type == 'dryer' %}
+  <h1>건조기 동 선택</h1>
+{% else %}
+  <h1>동 선택</h1>
+{% endif %}
+
+<div class="building-card-grid">
+  {% for b in buildings %}
+  {% if b == 'D' %}
+    <a class="building-card" style="grid-column: 2;"
+       href="{% url 'laundry:machine_list_page' %}?type={{ type }}&building={{ b }}">
+      <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
+      <span>{{ b }}동</span>
+    </a>
+  {% elif b == 'E' %}
+    <a class="building-card" style="grid-column: 3;"
+       href="{% url 'laundry:machine_list_page' %}?type={{ type }}&building={{ b }}">
+      <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
+      <span>{{ b }}동</span>
+    </a>
+  {% else %}
+    <a class="building-card"
+       href="{% url 'laundry:machine_list_page' %}?type={{ type }}&building={{ b }}">
+      <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
+      <span>{{ b }}동</span>
+    </a>
+  {% endif %}
+{% endfor %}
+ </div>
+</div>
+
 {% endblock %}

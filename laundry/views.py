@@ -110,10 +110,13 @@ def building_list_with_counts(request):
 
 # @login_required  ← 이거 주석처리
 def select_machine_page(request):
+    building = request.GET.get('building')
     type_ = request.GET.get('type', 'washer')
-    buildings = Machine.objects.values_list('building', flat=True).distinct()
+
+    machines = Machine.objects.filter(building=building, machine_type=type_)
     return render(request, 'laundry/select_machine.html', {
-        'buildings': buildings,
+        'machines': machines,
+        'selected_building': building,
         'type': type_,
     })
 
@@ -218,3 +221,7 @@ def list_waitlist(request, machine_id):
     waiters = WaitList.objects.filter(machine=machine).order_by('created_at')
     data = [{'user': w.user.student_id, 'joined_at': w.created_at} for w in waiters]
     return Response(data)
+
+def select_building_page(request):
+    buildings = Machine.objects.values_list('building', flat=True).distinct()
+    return render(request, 'laundry/select_building.html', {'buildings': buildings})
