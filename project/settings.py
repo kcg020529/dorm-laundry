@@ -129,3 +129,9 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your_email@hufs.ac.kr'
 EMAIL_HOST_PASSWORD = 'your_email_password'
 DEFAULT_FROM_EMAIL = 'HUFS Laundry <your_email@hufs.ac.kr>'
+
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '52.78.47.153',
+]

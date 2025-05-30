@@ -149,3 +149,9 @@ LOGIN_URL = '/laundry/login/'
 
 #커스텀 유저 모델 사용
 AUTH_USER_MODEL = 'laundry.user'
+
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '52.78.47.153',
+]
