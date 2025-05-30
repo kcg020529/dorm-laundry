@@ -5,8 +5,9 @@
   <div class="overlay">
     <h1 class="reserve-text">Reserve<br/>NOW</h1>
     <div class="buttons">
-      <a href="{% url 'laundry:machine_list_page' %}" class="machine-btn">세탁기</a>
-      <a href="{% url 'laundry:select_machine' %}?type=dryer" class="machine-btn">건조기</a>
+      <!-- <a href="{% url 'laundry:machine_list_page' %}" class="machine-btn">세탁기</a>
+      <a href="{% url 'laundry:select_machine' %}?type=dryer" class="machine-btn">건조기</a> -->
+      <a href="{% url 'select_building' %}" class="btn btn-lg btn-primary">예약하기</a>
     </div>
   </div>
 {% endblock %}

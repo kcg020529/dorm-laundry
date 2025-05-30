@@ -15,7 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Machine, Reservation, WaitList
+from .models import Machine, Reservation, WaitList, Building
 from .task import (
     send_reservation_reminder,
     start_reservation_task,
@@ -62,7 +62,7 @@ def activate_view(request, uidb64, token):
         user.is_active = True
         user.save()
         login(request, user)
-        return redirect('laundry:index')
+        return redirect('laundry:index_page')
     else:
         return render(request, 'laundry/activation_invalid.html')
 
@@ -70,18 +70,6 @@ def activate_view(request, uidb64, token):
 
 def index_page(request):
     return render(request, 'index.html')
-
-def machine_list_page(request):
-    machines = Machine.objects.all()
-    return render(request, 'laundry/machine_list.html', {'machines': machines})
-
-def washer_list(request):
-    machines = Machine.objects.filter(machine_type='washer')
-    return render(request, 'laundry/machine_list.html', {'machines': machines})
-
-def dryer_list(request):
-    machines = Machine.objects.filter(machine_type='dryer')
-    return render(request, 'laundry/machine_list.html', {'machines': machines})
 
 def mypage(request):
     reservations = Reservation.objects.filter(user=request.user).order_by('-start_time')
@@ -108,6 +96,18 @@ def select_machine_page(request):
         'type': type_param,
         'selected_building': selected_building,
         'buildings': buildings,
+    })
+
+def select_building(request):
+    buildings = Building.objects.all()
+    return render(request, 'laundry/select_building.html', {
+        'buildings': buildings
+    })
+
+def select_machine_type(request, building_id):
+    building = get_object_or_404(Building, id=building_id)
+    return render(request, 'laundry/select_type.html', {
+        'building': building
     })
 
 # ── API 뷰 ──
