@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="container">
+    <h2>{{ building.name }}동 – 기계 종류를 선택하세요</h2>
+    <div class="btn-group">
+      <a class="btn btn-primary"
+         href="{% url 'machine_list' %}?building={{ building.id }}&type=washing">
+        세탁기
+      </a>
+      <a class="btn btn-primary"
+         href="{% url 'machine_list' %}?building={{ building.id }}&type=dryer">
+        건조기
+      </a>
+    </div>
+  </div>
+{% endblock %}
