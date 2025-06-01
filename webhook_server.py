@@ -9,16 +9,16 @@ app = Flask(__name__)
 
 @app.route("/github-webhook", methods=["POST"])
 def webhook():
-    logger.info("✅ Webhook received")
+    logger.info("Webhook received")
 
-    project_path = "/home/ec2-user/dorm-laundry"
-    python_path = "/home/ec2-user/dorm-laundry/venv/bin/python"
+    project_path = "/home/ec2-user/dorm_laundry"
+    python_path = "/home/ec2-user/dorm_laundry/venv/bin/python"
 
     # git pull
     pull = subprocess.run(["git", "-C", project_path, "pull"], capture_output=True, text=True)
-    logger.info("📦 git pull stdout: %s", pull.stdout)
+    logger.info("git pull stdout: %s", pull.stdout)
     if pull.stderr:
-        logger.error("❌ git pull stderr: %s", pull.stderr)
+        logger.error("git pull stderr: %s", pull.stderr)
 
     # collectstatic
     static = subprocess.run(
@@ -27,9 +27,9 @@ def webhook():
         capture_output=True,
         text=True
     )
-    logger.info("🧼 collectstatic: %s", static.stdout or static.stderr)
+    logger.info("collectstatic: %s", static.stdout or static.stderr)
     if static.stderr:
-        logger.error("❌ collectstatic stderr: %s", static.stderr)
+        logger.error("collectstatic stderr: %s", static.stderr)
 
     # migrate
     migrate = subprocess.run(
@@ -38,7 +38,7 @@ def webhook():
         capture_output=True,
         text=True
     )
-    logger.info("📂 migrate: %s", migrate.stdout or migrate.stderr)
+    logger.info("migrate: %s", migrate.stdout or migrate.stderr)
 
     return "OK", 200
 
