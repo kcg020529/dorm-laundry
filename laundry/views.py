@@ -71,8 +71,17 @@ def activate_view(request, uidb64, token):
 def index_page(request):
     return render(request, 'index.html')
 
+# @login_required
 def machine_list_page(request):
     machines = Machine.objects.all()
+    type_ = request.GET.get('type')
+    building = request.GET.get('building')
+
+    if type_:
+        machines = machines.filter(machine_type=type_)
+    if building:
+        machines = machines.filter(building=building)
+
     return render(request, 'laundry/machine_list.html', {'machines': machines})
 
 def washer_list(request):
@@ -99,10 +108,18 @@ def building_list_with_counts(request):
         data.append({'building': b, 'count': count})
     return JsonResponse(data, safe=False)
 
+# @login_required  ← 이거 주석처리
 def select_machine_page(request):
-    type_param = request.GET.get('type', 'washer')
-    selected_building = request.GET.get('building', '')
-    buildings = ['A', 'B', 'C', 'D', 'E']  # 필요에 따라 동 추가/삭제
+    building = request.GET.get('building')
+    type_ = request.GET.get('type', 'washer')
+
+    machines = Machine.objects.filter(building=building, machine_type=type_)
+    return render(request, 'laundry/select_machine.html', {
+        'machines': machines,
+        'selected_building': building,
+        'type': type_,
+    })
+
 
     return render(request, 'laundry/select_machine.html', {
         'type': type_param,
@@ -204,3 +221,7 @@ def list_waitlist(request, machine_id):
     waiters = WaitList.objects.filter(machine=machine).order_by('created_at')
     data = [{'user': w.user.student_id, 'joined_at': w.created_at} for w in waiters]
     return Response(data)
+
+def select_building_page(request):
+    buildings = Machine.objects.values_list('building', flat=True).distinct()
+    return render(request, 'laundry/select_building.html', {'buildings': buildings})

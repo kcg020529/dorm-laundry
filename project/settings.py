@@ -8,7 +8,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-secret-key')
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '52.78.47.153', '127.0.0.1', 'localhost').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,18 +32,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'laundry_db',
-        'USER': 'test',
-        'PASSWORD': 'your_password',  # 여기랑 MySQL에 입력한 비번이 정확히 일치해야 해
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-}
-
 
 ROOT_URLCONF = 'project.urls'
 
@@ -126,7 +114,6 @@ REST_FRAMEWORK = {
 # Celery
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 
-# 시간대
 TIME_ZONE = 'Asia/Seoul'
 USE_TZ = True
 
@@ -141,3 +128,9 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your_email@hufs.ac.kr'
 EMAIL_HOST_PASSWORD = 'your_email_password'
 DEFAULT_FROM_EMAIL = 'HUFS Laundry <your_email@hufs.ac.kr>'
+
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '52.78.47.153',
+]
