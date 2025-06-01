@@ -22,11 +22,8 @@ from .task import (
     end_reservation_task
 )
 from .forms import SignUpForm
-
 from django.db import connection
-print("🔥 실제 접속 사용자:", connection.settings_dict['USER'])
-print("🔥 접속 DB:", connection.settings_dict['NAME'])
-print("🔥 settings 모듈:", __import__(os.environ.get('DJANGO_SETTINGS_MODULE')).__file__)
+import os
 
 User = get_user_model()
 
@@ -115,6 +112,9 @@ def building_list_with_counts(request):
 
 # @login_required  ← 이거 주석처리
 def select_machine_page(request):
+    print("🔥 실제 접속 사용자:", connection.settings_dict['USER'])
+    print("🔥 접속 DB:", connection.settings_dict['NAME'])
+    print("🔥 settings 모듈:", __import__(os.environ.get('DJANGO_SETTINGS_MODULE')).__file__)
     building = request.GET.get('building')
     type_ = request.GET.get('type', 'washer')
 
