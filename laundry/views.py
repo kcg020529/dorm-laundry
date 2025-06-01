@@ -23,6 +23,11 @@ from .task import (
 )
 from .forms import SignUpForm
 
+from django.db import connection
+print("🔥 실제 접속 사용자:", connection.settings_dict['USER'])
+print("🔥 접속 DB:", connection.settings_dict['NAME'])
+print("🔥 settings 모듈:", __import__(os.environ.get('DJANGO_SETTINGS_MODULE')).__file__)
+
 User = get_user_model()
 
 # 회원가입 뷰
