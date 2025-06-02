@@ -1,13 +1,142 @@
-<h1>{{ selected_building }}동 {{ type == 'washer' and '세탁기' or '건조기' }} 선택</h1>
-<div class="toggle-group">
-  <a href="{% url 'laundry:select_machine' %}?type=washer&building={{ selected_building }}">세탁기</a>
-  <a href="{% url 'laundry:select_machine' %}?type=dryer&building={{ selected_building }}">건조기</a>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  .machine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+    max-width: 900px;
+    margin: auto;
+  }
+
+
+  .machine-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    border: 2px solid #003366;
+    background-color: white;
+    gap: 1rem;
+    overflow: hidden;  /* ✅ 카드 밖으로 넘치는 요소 숨김 */
+  }
+
+  @media (max-width: 899px) {
+    .machine-grid {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+   }
+  }
+
+  @media (max-width: 599px) {
+    .machine-card {
+        padding: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .machine-left {
+      margin-bottom: 0.8rem;
+    }
+
+    .reserve-btn {
+      width: 100%;
+    }
+  }
+
+  .machine-card.in-use {
+    background-color: #003366;
+    color: white;
+  }
+
+  .machine-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .machine-left img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .machine-info h4 {
+    font-size: 1.2rem;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .machine-info .status {
+    font-size: 0.95rem;
+    font-weight: bold;
+    margin-top: 5px;
+    color: #007700;
+  }
+
+  .machine-card.in-use .status {
+    color: #ffebc3;
+  }
+
+
+  .reserve-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    background-color: #003366;
+    color: white;
+    font-weight: bold;
+    border: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-align: center;
+
+    width: fit-content;       /* ✅ 너비를 내용에 맞게 */
+    min-width: 80px;      /* ✅ 최소 너비 확보 */
+    max-width: 120px;     /* ✅ 카드보다 넘지 않도록 제한 */
+  }
+
+  .reserve-btn:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+  }
+</style>
+
+<div class="machine-grid">
+  {% for machine in machines %}
+    <div class="machine-card {% if machine.is_in_use %}in-use{% endif %}"
+         {% if not machine.is_in_use %}
+         onclick="reserveMachine({{ machine.id }}, '{{ machine.name }}')"
+         style="cursor: pointer;"
+         {% endif %}>
+      <div class="machine-left">
+        <img src="{% static 'images/' %}{{ type }}_icon.png" alt="{{ type }} 아이콘">
+        <div class="machine-info">
+          <h4>{{ machine.name }} {% if type == 'washer' %}세탁기{% else %}건조기{% endif %}</h4>
+          <div class="status">
+            {% if machine.is_in_use %}사용 중{% else %}예약 가능{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
 </div>
 
-<ul>
-  {% for m in machines %}
-    <li>{{ m.name }} - {% if m.is_in_use %}사용 중{% else %}비어 있음{% endif %}</li>
-  {% endfor %}
-</ul>
+
+
+<script>
+  function reserveMachine(machineId, machineName) {
+    alert(`"${machineName}" 예약 요청 전송됨 (예시)`);
+
+    // 실제 예약 API POST 요청 구현하려면 여기에 추가:
+    // fetch("/laundry/reservations/create/", { method: "POST", body: JSON.stringify(...), headers: ... })
+  }
+</script>
+{% endblock %}
 
 

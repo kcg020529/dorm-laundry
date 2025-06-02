@@ -110,13 +110,6 @@ def building_list_with_counts(request):
         data.append({'building': b, 'count': count})
     return JsonResponse(data, safe=False)
 
-# @login_required  ← 이거 주석처리
-def select_machine_page(request):
-    print("🔥 실제 접속 사용자:", connection.settings_dict['USER'])
-    print("🔥 접속 DB:", connection.settings_dict['NAME'])
-    print("🔥 settings 모듈:", __import__(os.environ.get('DJANGO_SETTINGS_MODULE')).__file__)
-    building = request.GET.get('building')
-    type_ = request.GET.get('type', 'washer')
 
     machines = Machine.objects.filter(building=building, machine_type=type_)
     return render(request, 'laundry/select_machine.html', {
@@ -228,5 +221,24 @@ def list_waitlist(request, machine_id):
     return Response(data)
 
 def select_building_page(request):
+    type_ = request.GET.get('type', 'washer')
     buildings = Machine.objects.values_list('building', flat=True).distinct()
-    return render(request, 'laundry/select_building.html', {'buildings': buildings})
+    return render(request, 'laundry/select_building.html', {
+        'buildings': buildings,
+        'type': type_,
+    })
+
+
+def select_machine(request):
+    type = request.GET.get("type")
+    building = request.GET.get("building")
+
+    if not type or not building:
+        return redirect('laund  ry:index_page')
+
+    machines = Machine.objects.filter(machine_type=type, building=building).order_by('name')
+    return render(request, 'laundry/select_machine.html', {
+        'machines': machines,
+        'building_name': building.upper(),
+        'type': type,
+    })

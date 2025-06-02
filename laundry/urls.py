@@ -13,9 +13,8 @@ urlpatterns = [
     # 1단계: 동 선택
     path('select/', views.select_building_page, name='select_building'),
     # alias for backward compatibility: 기존 템플릿에서 'select_machine' 호출 대비
-    path('select/', views.select_machine_page, name='select_machine'),
     # 2단계: 선택한 동에서 기계 종류 선택
-    path('select-machine/', views.select_machine_page, name='select_machine'),
+    path('select_machine/', views.select_machine, name='select_machine'),
     # 3단계: 실제 기계 리스트 (GET 파라미터 building, type 사용)
     path('machines/', views.machine_list_page, name='machine_list_page'),
 

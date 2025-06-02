@@ -86,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'laundry_db',
         'USER': 'root',
-        'PASSWORD': '1234',
+        'PASSWORD': 'nicky1436@',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -130,6 +130,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # static/style.css가 여기에 있어야 함
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
