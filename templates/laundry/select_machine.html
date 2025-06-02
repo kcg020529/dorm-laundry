@@ -115,7 +115,7 @@
          style="cursor: pointer;"
          {% endif %}>
       <div class="machine-left">
-        <img src="{% static 'images/machine_icon.png' %}" alt="기기 아이콘">
+        <img src="{% static 'images/' %}{{ type }}_icon.png" alt="{{ type }} 아이콘">
         <div class="machine-info">
           <h4>{{ machine.name }} {% if type == 'washer' %}세탁기{% else %}건조기{% endif %}</h4>
           <div class="status">
