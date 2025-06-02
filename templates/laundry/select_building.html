@@ -62,23 +62,23 @@
   <h1>동 선택</h1>
 {% endif %}
 
-<div class="building-card-grid">
-  {% for b in buildings %}
+  <div class="building-card-grid">
+    {% for b in buildings %}
   {% if b == 'D' %}
     <a class="building-card" style="grid-column: 2;"
-       href="{% url 'laundry:machine_list_page' %}?type={{ type }}&building={{ b }}">
+       href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ b }}">
       <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
       <span>{{ b }}동</span>
     </a>
   {% elif b == 'E' %}
     <a class="building-card" style="grid-column: 3;"
-       href="{% url 'laundry:machine_list_page' %}?type={{ type }}&building={{ b }}">
+       href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ b }}">
       <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
       <span>{{ b }}동</span>
     </a>
   {% else %}
     <a class="building-card"
-       href="{% url 'laundry:machine_list_page' %}?type={{ type }}&building={{ b }}">
+       href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ b }}">
       <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
       <span>{{ b }}동</span>
     </a>
