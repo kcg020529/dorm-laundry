@@ -105,6 +105,7 @@ class Machine(models.Model):
     image = models.ImageField(upload_to='machine_images/', blank=True, null=True)
     is_in_use = models.BooleanField(default=False)
 
+    @property
     def get_image_url(self):
         if self.image:
             return self.image.url
