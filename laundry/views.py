@@ -107,16 +107,6 @@ def select_building_page(request):
     buildings = Building.objects.values_list('name', flat=True).order_by('name')
     return render(request, 'select_building.html', {'type': type_, 'buildings': buildings})
 
-def select_machine(request, building_id):
-    building = get_object_or_404(Building, id=building_id)
-    washers = building.machines.filter(type='washer')
-    dryers = building.machines.filter(type='dryer')
-    return render(request, 'select_machine.html', {
-        'building': building,
-        'washers': washers,
-        'dryers': dryers,
-    })
-
 def building_list_with_counts(request):
     buildings = Machine.objects.values_list('building_id', flat=True).distinct()
     data = []
