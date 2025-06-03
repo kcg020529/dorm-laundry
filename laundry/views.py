@@ -243,17 +243,24 @@ def select_building_page(request):
         'type': type_,
     })
 
-
 def select_machine(request):
-    type = request.GET.get("type")
-    building = request.GET.get("building")
+    type_ = request.GET.get("type")
+    building_id = request.GET.get("building")
 
-    if not type or not building:
-        return redirect('laund  ry:index_page')
+    if not type_ or not building_id:
+        return redirect('laundry:index_page')  # 오타 수정: 'laund  ry' → 'laundry'
 
-    machines = Machine.objects.filter(machine_type=type, building=building).order_by('name')
+    # building 객체 가져오기 (존재하지 않으면 404)
+    building_obj = get_object_or_404(Building, id=building_id)
+
+    # 해당 building 및 type에 해당하는 머신 목록 조회
+    machines = Machine.objects.filter(
+        machine_type=type_,
+        building__id=building_id
+    ).order_by('name')
+
     return render(request, 'laundry/select_machine.html', {
         'machines': machines,
-        'building_name': building.upper(),
-        'type': type,
+        'building_name': building_obj.name.upper(),
+        'type': type_,
     })
