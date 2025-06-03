@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load building_extras %}
 
 {% block content %}
 <style>
@@ -12,14 +13,12 @@
 
   .building-card-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);  /* 3열 고정 */
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     justify-content: center;
     max-width: 1000px;
     margin: 0 auto 3rem auto;
-   }
-
-
+  }
 
   .building-card {
     width: 220px;
@@ -54,37 +53,25 @@
 </style>
 
 <div class="card_section_wrapper">
-{% if type == 'washer' %}
-  <h1>세탁기 동 선택</h1>
-{% elif type == 'dryer' %}
-  <h1>건조기 동 선택</h1>
-{% else %}
-  <h1>동 선택</h1>
-{% endif %}
+  {% if type == 'washer' %}
+    <h1>세탁기 동 선택</h1>
+  {% elif type == 'dryer' %}
+    <h1>건조기 동 선택</h1>
+  {% else %}
+    <h1>동 선택</h1>
+  {% endif %}
 
   <div class="building-card-grid">
-    {% for b in buildings %}
-  {% if b == 'D' %}
-    <a class="building-card" style="grid-column: 2;"
-       href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ b }}">
-      <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
-      <span>{{ b }}동</span>
-    </a>
-  {% elif b == 'E' %}
-    <a class="building-card" style="grid-column: 3;"
-       href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ b }}">
-      <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
-      <span>{{ b }}동</span>
-    </a>
-  {% else %}
-    <a class="building-card"
-       href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ b }}">
-      <img src="{% static 'images' %}/building_{{ b }}.jpg" alt="{{ b }}동 이미지">
-      <span>{{ b }}동</span>
-    </a>
-  {% endif %}
-{% endfor %}
- </div>
+    {% for building in buildings %}
+      {% with building|get_building_image as img_path %}
+        <a class="building-card"
+           href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ building }}">
+          <img src="{{ img_path }}" alt="{{ building }}동 이미지">
+          <span>{{ building }}동</span>
+        </a>
+      {% endwith %}
+    {% endfor %}
+  </div>
 </div>
 
 {% endblock %}

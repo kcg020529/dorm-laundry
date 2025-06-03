@@ -15,7 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Machine, Reservation, WaitList
+from .models import Building, Machine, Reservation, WaitList
 from .task import (
     send_reservation_reminder,
     start_reservation_task,
@@ -100,6 +100,21 @@ def mypage(request):
     return render(request, 'laundry/mypage.html', {
         'reservations': reservations,
         'waitlist': waitlist
+    })
+
+def select_building_page(request):
+    type_ = request.GET.get('type')
+    buildings = Building.objects.values_list('name', flat=True).order_by('name')
+    return render(request, 'select_building.html', {'type': type_, 'buildings': buildings})
+
+def select_machine(request, building_id):
+    building = get_object_or_404(Building, id=building_id)
+    washers = building.machines.filter(type='washer')
+    dryers = building.machines.filter(type='dryer')
+    return render(request, 'select_machine.html', {
+        'building': building,
+        'washers': washers,
+        'dryers': dryers,
     })
 
 def building_list_with_counts(request):

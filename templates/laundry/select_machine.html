@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load building_extras %}
 
 {% block content %}
 <style>
@@ -12,7 +13,6 @@
     margin: auto;
   }
 
-
   .machine-card {
     display: flex;
     justify-content: space-between;
@@ -22,21 +22,21 @@
     border: 2px solid #003366;
     background-color: white;
     gap: 1rem;
-    overflow: hidden;  /* ✅ 카드 밖으로 넘치는 요소 숨김 */
+    overflow: hidden;
   }
 
   @media (max-width: 899px) {
     .machine-grid {
       grid-template-columns: 1fr;
       padding: 1rem;
-   }
+    }
   }
 
   @media (max-width: 599px) {
     .machine-card {
-        padding: 1rem;
-        flex-direction: column;
-        align-items: flex-start;
+      padding: 1rem;
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .machine-left {
@@ -83,7 +83,6 @@
     color: #ffebc3;
   }
 
-
   .reserve-btn {
     padding: 0.6rem 1rem;
     font-size: 0.9rem;
@@ -95,10 +94,9 @@
     white-space: nowrap;
     flex-shrink: 0;
     text-align: center;
-
-    width: fit-content;       /* ✅ 너비를 내용에 맞게 */
-    min-width: 80px;      /* ✅ 최소 너비 확보 */
-    max-width: 120px;     /* ✅ 카드보다 넘지 않도록 제한 */
+    width: fit-content;
+    min-width: 80px;
+    max-width: 120px;
   }
 
   .reserve-btn:disabled {
@@ -115,7 +113,7 @@
          style="cursor: pointer;"
          {% endif %}>
       <div class="machine-left">
-        <img src="{% static 'images/' %}{{ type }}_icon.png" alt="{{ type }} 아이콘">
+        <img src="{{ machine.get_image_url }}" alt="{{ machine.name }} 아이콘">
         <div class="machine-info">
           <h4>{{ machine.name }} {% if type == 'washer' %}세탁기{% else %}건조기{% endif %}</h4>
           <div class="status">
@@ -127,16 +125,10 @@
   {% endfor %}
 </div>
 
-
-
 <script>
   function reserveMachine(machineId, machineName) {
-    alert(`"${machineName}" 예약 요청 전송됨 (예시)`);
-
-    // 실제 예약 API POST 요청 구현하려면 여기에 추가:
-    // fetch("/laundry/reservations/create/", { method: "POST", body: JSON.stringify(...), headers: ... })
+    alert('"${machineName}" 예약 요청 전송됨 (예시)');
+    // TODO: 실제 예약 요청 처리 fetch() API 호출 등
   }
 </script>
 {% endblock %}
-
-

@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
 from django.core.exceptions import ValidationError
+import os
 
 class UserManager(BaseUserManager):
     def create_user(self, student_id, password=None, **extra_fields):
@@ -32,22 +33,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.student_id
 
-class Machine(models.Model):
-    MACHINE_TYPES = [
-        ('washer', '세탁기'),
-        ('dryer', '건조기'),
-    ]
-    name = models.CharField(max_length=50)
-    building = models.CharField(max_length=10)
-    machine_type = models.CharField(max_length=10, choices=MACHINE_TYPES)
-    is_in_use = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.building}동 {self.name}"
-
 class Reservation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
+    machine = models.ForeignKey('Machine', on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
@@ -71,7 +59,7 @@ class Meta:
 
 class WaitList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
+    machine = models.ForeignKey('Machine', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -93,13 +81,33 @@ class PushSubscription(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"PushSubscription for {self.user.student_id}"
-    
-class Building(models.Model):
-    """
-    기숙사 동 정보를 저장하는 모델
-    """
-    name = models.CharField(max_length=10, unique=True)
+        return f"PushSubscription for {self.user.student_id}" 
 
-    def __str__(self):
-        return self.name
+class Building(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def get_image_url(self):
+        static_filename = f'building_{self.name}.jpg'
+        static_path = os.path.join(settings.BASE_DIR, 'static', 'images', static_filename)
+        if os.path.exists(static_path):
+            return f'/static/images/{static_filename}'
+        return '/static/images/default_building.jpg'
+
+class Machine(models.Model):
+    MACHINE_TYPES = (
+        ('washer', '세탁기'),
+        ('dryer', '건조기'),
+    )
+    name = models.CharField(max_length=100)
+    building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='machines')
+    type = models.CharField(max_length=10, choices=MACHINE_TYPES)
+    image = models.ImageField(upload_to='machine_images/', blank=True, null=True)
+
+    def get_image_url(self):
+        if self.image:
+            return self.image.url
+        if self.type == 'washer':
+            return '/static/images/washer_icon.png'
+        elif self.type == 'dryer':
+            return '/static/images/dryer_icon.png'
+        return '/static/images/default_machine.png'
