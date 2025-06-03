@@ -109,7 +109,7 @@
   {% for machine in machines %}
     <div class="machine-card {% if machine.is_in_use %}in-use{% endif %}"
          {% if not machine.is_in_use %}
-         onclick="reserveMachine({{ machine.id }}, '{{ machine.name }}')"
+         onclick="reserveMachine({{ machine.id }}, '{{ machine.name|escapejs }}')"
          style="cursor: pointer;"
          {% endif %}>
       <div class="machine-left">

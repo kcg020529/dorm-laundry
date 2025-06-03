@@ -65,7 +65,7 @@
     {% for building in buildings %}
       {% with building|get_building_image as img_path %}
         <a class="building-card"
-           href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ building }}">
+           href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ building.id }}">
           <img src="{{ img_path }}" alt="{{ building }}동 이미지">
           <span>{{ building }}동</span>
         </a>
