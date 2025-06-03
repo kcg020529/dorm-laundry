@@ -109,8 +109,8 @@ class Machine(models.Model):
     def get_image_url(self):
         if self.image:
             return self.image.url
-        if self.type == 'washer':
+        if self.machine_type == 'washer':
             return '/static/images/washer_icon.png'
-        elif self.type == 'dryer':
+        elif self.machine_type == 'dryer':
             return '/static/images/dryer_icon.png'
         return '/static/images/default_machine.png'
