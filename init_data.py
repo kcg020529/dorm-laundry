@@ -8,11 +8,11 @@ from laundry.models import Building, Machine
 
 # 동별 세탁기/건조기 수 정의
 buildings = {
-    "A": {"washer": 10, "dryer": 7},
-    "B": {"washer": 9, "dryer": 6},
-    "C": {"washer": 14, "dryer": 8},
-    "D": {"washer": 10, "dryer": 10},
-    "E": {"washer": 10, "dryer": 10},
+    "A동": {"washer": 10, "dryer": 7},
+    "B동": {"washer": 9, "dryer": 6},
+    "C동": {"washer": 14, "dryer": 8},
+    "D동": {"washer": 10, "dryer": 10},
+    "E동": {"washer": 10, "dryer": 10},
 }
 
 for name, machine_counts in buildings.items():
