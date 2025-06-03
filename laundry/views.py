@@ -237,7 +237,8 @@ def list_waitlist(request, machine_id):
 
 def select_building_page(request):
     type_ = request.GET.get('type', 'washer')
-    building_qs = Building.objects.all().order_by('name')
+    building_ids = Machine.objects.values_list('building_id', flat=True).distinct()
+    building_qs = Building.objects.filter(id__in=building_ids).order_by('name')
     return render(request, 'laundry/select_building.html', {
         'buildings': building_qs,
         'type': type_,
