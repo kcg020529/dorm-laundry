@@ -118,13 +118,12 @@ def select_machine(request, building_id):
     })
 
 def building_list_with_counts(request):
-    buildings = Machine.objects.values_list('building', flat=True).distinct()
+    buildings = Machine.objects.values_list('building_id', flat=True).distinct()
     data = []
     for b in buildings:
-        count = Machine.objects.filter(building=b, is_in_use=True).count()
+        count = Machine.objects.filter(building_id=b, is_in_use=True).count()
         data.append({'building': b, 'count': count})
     return JsonResponse(data, safe=False)
-
 
     machines = Machine.objects.filter(building=building, machine_type=type_)
     return render(request, 'laundry/select_machine.html', {
