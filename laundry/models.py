@@ -86,6 +86,7 @@ class PushSubscription(models.Model):
 class Building(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
+    @property
     def get_image_url(self):
         static_filename = f'building_{self.name}.jpg'
         static_path = os.path.join(settings.BASE_DIR, 'static', 'images', static_filename)
