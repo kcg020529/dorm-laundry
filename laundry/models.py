@@ -88,14 +88,12 @@ class Building(models.Model):
 
     @property
     def get_image_url(self):
-        # 한글 제거 (예: A동 → A)
+        # building 이름에서 알파벳, 숫자만 추출 (예: A동 → A)
         name_safe = re.sub(r'[^\w]', '', self.name)
         static_filename = f'building_{name_safe}.jpg'
-        static_path = os.path.join(settings.BASE_DIR, 'static', 'images', static_filename)
 
-        if os.path.exists(static_path):
-            return f'/static/images/{static_filename}'
-        return '/static/images/default_building.jpg'
+        # 반환만 하고 존재 여부는 브라우저에게 맡김 (404면 default 쓰도록)
+        return f'/static/images/{static_filename}'
 
 class Machine(models.Model):
     MACHINE_TYPES = (
@@ -110,11 +108,7 @@ class Machine(models.Model):
 
     @property
     def get_image_url(self):
-        if self.image and hasattr(self.image, 'url'):
-            try:
-                return self.image.url
-            except Exception:
-                pass  # URL 접근 실패 시 무시
+    # 미디어 이미지가 없는 경우에도 안전하게 fallback
         if self.machine_type == 'washer':
             return '/static/images/washer_icon.png'
         elif self.machine_type == 'dryer':

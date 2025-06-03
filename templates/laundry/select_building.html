@@ -65,7 +65,8 @@
     {% for b in buildings %}
       <a class="building-card"
          href="{% url 'laundry:select_machine' %}?type={{ type }}&building={{ b.id }}">
-        <img src="{{ b.get_image_url }}" alt="{{ b.name }}동 이미지">
+        <img src="{{ b.get_image_url }}" alt="{{ b.name }}동 이미지"
+          onerror="this.onerror=null; this.src='/static/images/default_building.jpg';">
         <span>{{ b.name }}동</span>
       </a>
     {% endfor %}
