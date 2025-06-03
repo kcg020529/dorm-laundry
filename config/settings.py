@@ -98,7 +98,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # 미디어 파일
 MEDIA_URL = '/media/'
-MEDIA_ROOT = [os.path.join(BASE_DIR, 'media')]
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # 사용자 모델
 AUTH_USER_MODEL = 'laundry.user'

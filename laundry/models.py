@@ -110,8 +110,11 @@ class Machine(models.Model):
 
     @property
     def get_image_url(self):
-        if self.image:
-            return self.image.url
+        if self.image and hasattr(self.image, 'url'):
+            try:
+                return self.image.url
+            except Exception:
+                pass  # URL 접근 실패 시 무시
         if self.machine_type == 'washer':
             return '/static/images/washer_icon.png'
         elif self.machine_type == 'dryer':
