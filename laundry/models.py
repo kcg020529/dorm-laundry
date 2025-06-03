@@ -102,6 +102,7 @@ class Machine(models.Model):
     building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='machines')
     machine_type = models.CharField(max_length=10, choices=MACHINE_TYPES)
     image = models.ImageField(upload_to='machine_images/', blank=True, null=True)
+    is_in_use = models.BooleanField(default=False)
 
     def get_image_url(self):
         if self.image:
