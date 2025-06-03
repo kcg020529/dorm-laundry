@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 환경 변수로부터 민감한 설정 불러오기
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-secret-key')
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,52.78.47.153').split(',')
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')]
 
 # 애플리케이션 정의
 INSTALLED_APPS = [
