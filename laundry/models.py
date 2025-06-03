@@ -1,9 +1,9 @@
-# laundry/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
 from django.core.exceptions import ValidationError
 import os
+import re
 
 class UserManager(BaseUserManager):
     def create_user(self, student_id, password=None, **extra_fields):
@@ -88,8 +88,11 @@ class Building(models.Model):
 
     @property
     def get_image_url(self):
-        static_filename = f'building_{self.name}.jpg'
+        # 한글 제거 (예: A동 → A)
+        name_safe = re.sub(r'[^\w]', '', self.name)
+        static_filename = f'building_{name_safe}.jpg'
         static_path = os.path.join(settings.BASE_DIR, 'static', 'images', static_filename)
+
         if os.path.exists(static_path):
             return f'/static/images/{static_filename}'
         return '/static/images/default_building.jpg'
