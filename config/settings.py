@@ -66,7 +66,7 @@ DATABASES = {
         'NAME': 'laundry_db',
         'USER': 'root',
         'PASSWORD': '1234',
-        'HOST': '52.78.47.153'
+        'HOST': '52.78.47.153',
         'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
