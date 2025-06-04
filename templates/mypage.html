@@ -3,6 +3,7 @@
 
 {% block content %}
 <style>
+/* 기존 스타일 그대로 유지 */
 .mypage-container {
     width: 500px;
     margin: 40px 0 0 40px;
@@ -12,45 +13,23 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     font-family: '맑은 고딕', sans-serif;
 }
-.mypage-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.mypage-header img {
-    width: 100px;
-    margin-right: 20px;
-}
-.mypage-header .info {
-    font-size: 1em;
-}
-.mypage-header .info h2 {
-    margin-bottom: 8px;
-    font-size: 1.5em;
-}
-.mypage-section {
-    margin-top: 30px;
-}
-.mypage-section h3 {
-    border-bottom: 2px solid #003366;
-    padding-bottom: 8px;
-    margin-bottom: 15px;
-    font-size: 1.3em;
-}
-.mypage-section ul {
-    list-style: none;
-    padding-left: 0;
-}
 .mypage-section li {
-    margin: 8px 0;
-    font-size: 1.1em;
+    margin: 12px 0;
+    font-size: 1rem;
 }
-.mypage-section a {
-    color: #003366;
-    text-decoration: none;
+.timer {
+    font-size: 0.9rem;
+    color: #c00;
+    margin-left: 10px;
 }
-.mypage-section a:hover {
-    text-decoration: underline;
+.confirm-btn {
+    background-color: #003366;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin-left: 10px;
+    cursor: pointer;
 }
 </style>
 
@@ -66,9 +45,20 @@
 
     <div class="mypage-section">
         <h3>▼ 내 예약 관리</h3>
-        <ul>
-            <li><a href="#">예약조회</a></li>
-            <li><a href="#">예약취소</a></li>
+        <ul id="reservation-list">
+            {% for res in reservations %}
+                <li>
+                    {{ res.machine.building }}동 {{ res.machine.name }}
+                    {% if not res.confirmed %}
+                        <span class="timer" id="timer-{{ res.id }}">--:--</span>
+                        <button class="confirm-btn" onclick="confirmReservation({{ res.id }})">사용 시작</button>
+                    {% else %}
+                        ✅ 사용 중
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>예약 내역이 없습니다.</li>
+            {% endfor %}
         </ul>
     </div>
 
@@ -79,4 +69,51 @@
         </ul>
     </div>
 </div>
+
+<script>
+  const reservations = [
+    {% for res in reservations %}
+      {% if not res.confirmed %}
+        { id: {{ res.id }}, created: "{{ res.created_at|date:"Y-m-d H:i:s" }}" },
+      {% endif %}
+    {% endfor %}
+  ];
+
+  function updateTimers() {
+    const now = new Date();
+
+    reservations.forEach(r => {
+      const createdAt = new Date(r.created.replace(' ', 'T'));
+      const diff = 10 * 60 * 1000 - (now - createdAt); // 10분 - 경과시간
+
+      const el = document.getElementById(`timer-${r.id}`);
+      if (diff > 0) {
+        const min = Math.floor(diff / 60000);
+        const sec = Math.floor((diff % 60000) / 1000);
+        el.textContent = `남은 시간: ${min}분 ${sec < 10 ? '0' + sec : sec}초`;
+      } else {
+        el.textContent = "⏰ 만료됨";
+      }
+    });
+  }
+
+  setInterval(updateTimers, 1000);
+
+  function confirmReservation(reservationId) {
+    fetch(`/laundry/reservations/confirm/${reservationId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+      },
+      credentials: 'include',
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message);
+      location.reload();
+    });
+  }
+</script>
 {% endblock %}
+

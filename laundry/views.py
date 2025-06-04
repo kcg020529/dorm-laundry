@@ -201,19 +201,33 @@ def get_remaining_time_api(request):
 def create_reservation(request):
     user = request.user
     machine_id = request.data.get('machine_id')
+
+    if not machine_id:
+        return Response({'error': '기기 ID가 없습니다.'}, status=400)
+
     machine = get_object_or_404(Machine, pk=machine_id)
 
     if machine.is_in_use:
-        return Response({'error': '이미 사용 중인 기기는 예약할 수 없습니다.'}, status=400)
+        return Response({'error': '이미 사용 중인 기기입니다.'}, status=400)
 
-    # 이미 예약했는지 확인
-    if Reservation.objects.filter(user=user, machine=machine).exists():
-        return Response({'error': '이미 해당 기기를 예약했습니다.'}, status=400)
+    Reservation.objects.create(
+        user=user,
+        machine=machine,
+        start_time=timezone.now(),  # 현재시간으로 넣기
+        end_time=timezone.now(),    # 의미 없는 값
+        confirmed=False             # 미확정 상태
+    )
 
-    Reservation.objects.create(user=user, machine=machine, start_time=timezone.now(), end_time=timezone.now())
+    return Response({'message': '예약이 완료되었습니다.'})
 
-    return Response({'message': '예약 완료.'})
-
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def confirm_reservation(request, pk):
+    reservation = get_object_or_404(Reservation, pk=pk, user=request.user)
+    reservation.confirmed = True
+    reservation.machine.is_in_use = True
+    reservation.save()
+    return Response({'message': '사용 확정'})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

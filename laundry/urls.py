@@ -17,6 +17,7 @@ urlpatterns = [
     path('select_machine/', views.select_machine, name='select_machine'),
     # 3단계: 실제 기계 리스트 (GET 파라미터 building, type 사용)
     path('machines/', views.machine_list_page, name='machine_list_page'),
+    path('reservations/confirm/<int:pk>/', views.confirm_reservation, name='confirm_reservation'),
 
     # ── 마이페이지 및 통계
     path('mypage/', views.mypage, name='mypage'),

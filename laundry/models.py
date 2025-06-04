@@ -42,6 +42,8 @@ class Reservation(models.Model):
     machine = models.ForeignKey('Machine', on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+    confirmed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.student_id} - {self.machine} ({self.start_time} to {self.end_time})"
