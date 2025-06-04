@@ -127,8 +127,30 @@
 
 <script>
   function reserveMachine(machineId, machineName) {
-    alert('"${machineName}" 예약 요청 전송됨 (예시)');
-    // TODO: 실제 예약 요청 처리 fetch() API 호출 등
+    if (!confirm(`"${machineName}" 기기를 예약하시겠습니까?`)) return;
+
+    fetch("{% url 'laundry:create_reservation' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      credentials: "include",
+      body: JSON.stringify({ machine_id: machineId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message) {
+        alert("✅ 예약이 완료되었습니다.");
+        location.reload();
+      } else if (data.error) {
+        alert("⚠️ " + data.error);
+      }
+    })
+    .catch(err => {
+      console.error("예약 요청 실패:", err);
+      alert("❌ 예약 처리 중 오류가 발생했습니다.");
+    });
   }
 </script>
 {% endblock %}

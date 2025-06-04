@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 import os
 
 class UserManager(BaseUserManager):
@@ -32,6 +33,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.student_id
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        send_mail(subject, message, from_email, [self.email], **kwargs)
 
 class Reservation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -107,8 +111,8 @@ class Machine(models.Model):
     def get_image_url(self):
         if self.image:
             return self.image.url
-        if self.type == 'washer':
+        if self.machine_type == 'washer':
             return '/static/images/washer_icon.png'
-        elif self.type == 'dryer':
+        elif self.machine_type == 'dryer':
             return '/static/images/dryer_icon.png'
         return '/static/images/default_machine.png'

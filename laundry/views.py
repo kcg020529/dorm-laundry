@@ -16,11 +16,13 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Building, Machine, Reservation, WaitList
+'''
 from .task import (
     send_reservation_reminder,
     start_reservation_task,
     end_reservation_task
 )
+'''
 from .forms import SignUpForm
 from django.db import connection
 import os
@@ -67,6 +69,20 @@ def activate_view(request, uidb64, token):
         return redirect('laundry:index')
     else:
         return render(request, 'laundry/activation_invalid.html')
+
+#로그인 뷰
+def login_view(request):
+    if request.method == "POST":
+        student_id = request.POST.get('student_id')  # 또는 username/email
+        password = request.POST.get('password')
+        user = authenticate(request, student_id=student_id, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('laundry:index')
+        else:
+            error = "로그인 정보가 올바르지 않습니다."
+            return render(request, 'laundry/login.html', {'error': error})
+    return render(request, 'laundry/login.html')
 
 # ── 페이지 뷰 ──
 
@@ -185,27 +201,19 @@ def get_remaining_time_api(request):
 def create_reservation(request):
     user = request.user
     machine_id = request.data.get('machine_id')
-    start = request.data.get('start_time')
-    end = request.data.get('end_time')
-    if not (machine_id and start and end):
-        return Response({'error': '모든 필드를 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
     machine = get_object_or_404(Machine, pk=machine_id)
 
-    new_res = Reservation.objects.create(
-        user=user,
-        machine=machine,
-        start_time=start,
-        end_time=end
-    )
-    start_reservation_task.apply_async(args=[new_res.id], eta=start)
-    end_reservation_task.apply_async(args=[new_res.id], eta=end)
-    for label, offset in [('10분 전', timedelta(minutes=10)), ('시작 시각', timedelta())]:
-        eta = start - offset
-        if timezone.is_naive(eta):
-            eta = timezone.make_aware(eta, timezone.get_current_timezone())
-        send_reservation_reminder.apply_async(args=[new_res.id, label], eta=eta)
+    if machine.is_in_use:
+        return Response({'error': '이미 사용 중인 기기는 예약할 수 없습니다.'}, status=400)
 
-    return Response({'message': '예약이 생성되었습니다.'}, status=status.HTTP_201_CREATED)
+    # 이미 예약했는지 확인
+    if Reservation.objects.filter(user=user, machine=machine).exists():
+        return Response({'error': '이미 해당 기기를 예약했습니다.'}, status=400)
+
+    Reservation.objects.create(user=user, machine=machine, start_time=timezone.now(), end_time=timezone.now())
+
+    return Response({'message': '예약 완료.'})
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

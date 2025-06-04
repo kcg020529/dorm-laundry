@@ -3,7 +3,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 환경 변수로부터 민감한 설정 불러오기
