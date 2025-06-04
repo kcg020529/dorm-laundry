@@ -237,8 +237,10 @@ def select_machine(request):
     type_ = request.GET.get("type")
     building_id = request.GET.get("building")
 
-    if not type_ or not building_id:
-        return redirect('laundry:index_page')  # 오타 수정: 'laund  ry' → 'laundry'
+    try:
+        building_id = int(building_id)
+    except ValueError:
+        return redirect('laundry:index_page')
 
     # building 객체 가져오기 (존재하지 않으면 404)
     building_obj = get_object_or_404(Building, id=building_id)
