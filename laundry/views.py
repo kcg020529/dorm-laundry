@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
+from dateutil import parser  # 추가
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -184,33 +185,42 @@ def get_remaining_time_api(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_reservation(request):
-    user = request.user
-    machine_id = request.data.get('machine_id')
-    start = request.data.get('start_time')
-    end = request.data.get('end_time')
+    try:
+        user = request.user
+        machine_id = request.data.get('machine_id')
+        start_str = request.data.get('start_time')
+        end_str = request.data.get('end_time')
 
-    if not (machine_id and start and end):
-        return Response({'success': False, 'message': '모든 필드를 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+        print("💡 받은 데이터:", machine_id, start_str, end_str)
 
-    machine = get_object_or_404(Machine, pk=machine_id)
+        # 문자열 → datetime
+        start = parser.isoparse(start_str)
+        end = parser.isoparse(end_str)
 
-    new_res = Reservation.objects.create(
-        user=user,
-        machine=machine,
-        start_time=start,
-        end_time=end
-    )
+        machine = get_object_or_404(Machine, pk=machine_id)
 
-    start_reservation_task.apply_async(args=[new_res.id], eta=start)
-    end_reservation_task.apply_async(args=[new_res.id], eta=end)
+        new_res = Reservation.objects.create(
+            user=user,
+            machine=machine,
+            start_time=start,
+            end_time=end
+        )
 
-    for label, offset in [('10분 전', timedelta(minutes=10)), ('시작 시각', timedelta())]:
-        eta = start - offset
-        if timezone.is_naive(eta):
-            eta = timezone.make_aware(eta, timezone.get_current_timezone())
-        send_reservation_reminder.apply_async(args=[new_res.id, label], eta=eta)
+        start_reservation_task.apply_async(args=[new_res.id], eta=start)
+        end_reservation_task.apply_async(args=[new_res.id], eta=end)
 
-    return Response({'success': True, 'message': '예약이 생성되었습니다.'}, status=status.HTTP_201_CREATED)
+        for label, offset in [('10분 전', timedelta(minutes=10)), ('시작 시각', timedelta())]:
+            eta = start - offset
+            if timezone.is_naive(eta):
+                eta = timezone.make_aware(eta, timezone.get_current_timezone())
+            send_reservation_reminder.apply_async(args=[new_res.id, label], eta=eta)
+
+        return Response({'success': True, 'message': '예약이 생성되었습니다.'})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({'success': False, 'message': f'서버 에러: {str(e)}'}, status=500)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
