@@ -5,31 +5,35 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth.base_user import BaseUserManager
 import os
 import re
 
 class UserManager(BaseUserManager):
-    def create_user(self, student_id, password=None, **extra_fields):
+    def create_user(self, student_id, username, password=None, **extra_fields):
         if not student_id:
-            raise ValueError('학번은 필수입니다')
-        user = self.model(student_id=student_id, **extra_fields)
+            raise ValueError('학번은 필수입니다.')
+        if not username:
+            raise ValueError('사용자 이름(username)은 필수입니다.')
+        user = self.model(student_id=student_id, username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, student_id, password=None, **extra_fields):
+    def create_superuser(self, student_id, username, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(student_id, password, **extra_fields)
+        return self.create_user(student_id, username, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
     student_id = models.CharField(max_length=20, unique=True)
+    username = models.CharField(max_length=30, unique=True)  # ✅ 사용자 이름 필수
     email = models.EmailField(blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'student_id'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username']
 
     objects = UserManager()
 
