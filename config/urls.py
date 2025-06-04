@@ -33,7 +33,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # laundry 앱 URL
-    path('laundry/', include('laundry.urls')),  # 네 앱의 urls.py 연결
+    path('', include('laundry.urls')),  # 네 앱의 urls.py 연결
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
