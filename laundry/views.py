@@ -191,7 +191,7 @@ def create_reservation(request):
         start_str = request.data.get('start_time')
         end_str = request.data.get('end_time')
 
-        print("💡 받은 데이터:", machine_id, start_str, end_str)
+        print("받은 데이터:", machine_id, start_str, end_str)
 
         # 문자열 → datetime
         start = parser.isoparse(start_str)
@@ -199,6 +199,16 @@ def create_reservation(request):
 
         machine = get_object_or_404(Machine, pk=machine_id)
 
+        # 중복 예약 방지
+        now = timezone.now()
+        existing = Reservation.objects.filter(
+            machine=machine,
+            end_time__gt=now
+        ).exists()
+        if existing:
+            return Response({'success': False, 'message': '이미 사용 중인 기기입니다.'}, status=400)
+
+        # 예약 생성
         new_res = Reservation.objects.create(
             user=user,
             machine=machine,
@@ -206,6 +216,11 @@ def create_reservation(request):
             end_time=end
         )
 
+        # 머신 상태 갱신
+        machine.is_in_use = True
+        machine.save()
+
+        # 예약 관련 태스크 등록
         start_reservation_task.apply_async(args=[new_res.id], eta=start)
         end_reservation_task.apply_async(args=[new_res.id], eta=end)
 
