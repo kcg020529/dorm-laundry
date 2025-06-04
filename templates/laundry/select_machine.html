@@ -15,14 +15,16 @@
 
   .machine-card {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: 1.2rem 1.5rem;
+    padding: 1.2rem 1rem;
     border-radius: 12px;
     border: 2px solid #003366;
     background-color: white;
     gap: 1rem;
-    overflow: hidden;
+    overflow: visible;
+    flex-wrap: wrap;
   }
 
   @media (max-width: 899px) {
@@ -57,6 +59,7 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
   }
 
   .machine-left img {
@@ -64,12 +67,19 @@
     height: 50px;
   }
 
+  .machine-info {
+    max-width: 100%;
+    word-break: break-word;
+    white-space: normal;
+    flex-shrink: 1;
+  }
+
   .machine-info h4 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.4;
+    white-space: normal;
+    word-break: keep-all;
   }
 
   .machine-info .status {
@@ -109,6 +119,7 @@
   {% for machine in machines %}
     <div class="machine-card {% if machine.is_in_use %}in-use{% endif %}"
          {% if not machine.is_in_use %}
+         id="machine-{{ machine.id }}"
          onclick="reserveMachine({{ machine.id }}, '{{ machine.name|escapejs }}')"
          style="cursor: pointer;"
          {% endif %}>
@@ -127,30 +138,60 @@
 
 <script>
   function reserveMachine(machineId, machineName) {
-    if (!confirm(`"${machineName}" 기기를 예약하시겠습니까?`)) return;
+    if (!confirm(`"${machineName}"을(를) 예약하시겠습니까?`)) return;
+
+    const card = document.getElementById(`machine-${machineId}`);
+    if (card) card.style.pointerEvents = "none"; // 중복 클릭 방지
+
+    const now = new Date();
+    const startTime = now.toISOString();
+    const endTime = new Date(now.getTime() + 30 * 60000).toISOString(); // 30분 후
 
     fetch("{% url 'laundry:create_reservation' %}", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken,
+        "X-CSRFToken": getCookie('csrftoken'),
       },
-      credentials: "include",
-      body: JSON.stringify({ machine_id: machineId })
+      body: JSON.stringify({
+        machine_id: machineId,
+        start_time: startTime,
+        end_time: endTime
+      }),
     })
-    .then(res => res.json())
+    .then(response => {
+      if (!response.ok) throw new Error("서버 오류 발생");
+      return response.json();
+    })
     .then(data => {
-      if (data.message) {
-        alert("✅ 예약이 완료되었습니다.");
+      if (data.success) {
+        alert(data.message || "예약 성공!");
         location.reload();
-      } else if (data.error) {
-        alert("⚠️ " + data.error);
+      } else {
+        alert("예약 실패: " + (data.message || "알 수 없는 오류"));
+        if (card) card.style.pointerEvents = "auto";
       }
     })
     .catch(err => {
-      console.error("예약 요청 실패:", err);
-      alert("❌ 예약 처리 중 오류가 발생했습니다.");
+      alert("예약 중 오류 발생: " + err.message);
+      if (card) card.style.pointerEvents = "auto";
     });
+  }
+
+  // CSRF 토큰 추출 함수
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
   }
 </script>
 {% endblock %}
