@@ -27,7 +27,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     student_id = models.CharField(max_length=20, unique=True)
-    username = models.CharField(max_length=30, unique=True)  # ✅ 사용자 이름 필수
+    username = models.CharField(max_length=30, unique=True, null=True, blank=False)  # ✅ 사용자 이름 필수
     email = models.EmailField(blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
