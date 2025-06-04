@@ -67,7 +67,7 @@ class Meta:
 class WaitList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     machine = models.ForeignKey('Machine', on_delete=models.CASCADE)
-    #created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'machine')
@@ -85,7 +85,7 @@ class PushSubscription(models.Model):
     endpoint = models.TextField()
     p256dh_key = models.CharField(max_length=255, blank=True, default='')
     auth_key   = models.CharField(max_length=255, blank=True, default='')
-    #created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"PushSubscription for {self.user.student_id}" 
