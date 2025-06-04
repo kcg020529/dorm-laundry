@@ -1,7 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 import os
 import re
 
@@ -114,3 +117,18 @@ class Machine(models.Model):
         elif self.machine_type == 'dryer':
             return '/static/images/dryer_icon.png'
         return '/static/images/default_machine.png'
+    
+User = get_user_model()
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    student_id = models.CharField(max_length=20)
+    department = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f'{self.user.username} 프로필'
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
