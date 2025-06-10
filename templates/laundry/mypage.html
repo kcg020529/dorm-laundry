@@ -3,7 +3,6 @@
 
 {% block content %}
 <style>
-/* 기존 스타일 그대로 유지 */
 .mypage-container {
     width: 500px;
     margin: 40px 0 0 40px;
@@ -33,9 +32,12 @@
 }
 </style>
 
+<!-- CSRF 토큰용 숨은 form (JS에서 사용하기 위함) -->
+<form style="display:none;">{% csrf_token %}</form>
+
 <div class="mypage-container">
-    <div class="mypage-header">
-        <img src="{% static '상징_미네르바_배경흰색.png' %}" alt="학교 로고">
+    <div class="mypage-header" style="display: flex; align-items: center; gap: 20px;">
+        <img src="{% static '상징_미네르바_배경흰색.png' %}" alt="학교 로고" style="height: 80px;">
         <div class="info">
             <h2>{{ user.last_name }}{{ user.first_name }}</h2>
             <p>{{ user.profile.student_id }} || {{ user.profile.department }}</p>
@@ -44,7 +46,6 @@
     </div>
 
     <div class="mypage-section">
-        <p>현재 로그인한 사용자: {{ user.student_id }}</p>
         <h3>▼ 내 예약 관리</h3>
         <ul id="reservation-list">
             {% for res in reservations %}
@@ -72,22 +73,30 @@
 </div>
 
 <script>
-  const reservations = [
-    {% for res in reservations %}
-      {% if not res.confirmed %}
-        { id: {{ res.id }}, created: "{{ res.created_at|date:"Y-m-d H:i:s" }}" },
-      {% endif %}
-    {% endfor %}
-  ];
+// CSRF 토큰 추출
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-  function updateTimers() {
-    const now = new Date();
+// 예약 목록
+const reservations = [
+{% for res in reservations %}
+  {% if not res.confirmed %}
+    {
+      id: {{ res.id }},
+      created: "{{ res.created_at|date:'Y-m-d H:i:s'|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+  {% endif %}
+{% endfor %}
+];
 
-    reservations.forEach(r => {
-      const createdAt = new Date(r.created.replace(' ', 'T'));
-      const diff = 10 * 60 * 1000 - (now - createdAt); // 10분 - 경과시간
+function updateTimers() {
+  const now = new Date();
 
-      const el = document.getElementById(`timer-${r.id}`);
+  reservations.forEach(r => {
+    const createdAt = new Date(r.created.replace(' ', 'T'));
+    const diff = 10 * 60 * 1000 - (now - createdAt); // 10분 - 경과시간
+
+    const el = document.getElementById(`timer-${r.id}`);
+    if (el) {
       if (diff > 0) {
         const min = Math.floor(diff / 60000);
         const sec = Math.floor((diff % 60000) / 1000);
@@ -95,26 +104,29 @@
       } else {
         el.textContent = "⏰ 만료됨";
       }
-    });
-  }
+    }
+  });
+}
 
-  setInterval(updateTimers, 1000);
+// 처음 한 번 실행 + 매초마다 타이머 갱신
+updateTimers();
+setInterval(updateTimers, 1000);
 
-  function confirmReservation(reservationId) {
-    fetch(`/laundry/reservations/confirm/${reservationId}/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken,
-      },
-      credentials: 'include',
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert(data.message);
-      location.reload();
-    });
-  }
+// 예약 확인 버튼 클릭 시
+function confirmReservation(reservationId) {
+  fetch(`/laundry/reservations/confirm/${reservationId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+    },
+    credentials: 'include',
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    location.reload();
+  });
+}
 </script>
 {% endblock %}
-

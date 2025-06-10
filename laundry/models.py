@@ -1,49 +1,50 @@
-# laundry/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.base_user import BaseUserManager
 import os
+import re
 
 class UserManager(BaseUserManager):
-    def create_user(self, student_id, password=None, **extra_fields):
+    def create_user(self, student_id, username, password=None, **extra_fields):
         if not student_id:
-            raise ValueError('학번은 필수입니다')
-        user = self.model(student_id=student_id, **extra_fields)
+            raise ValueError('학번은 필수입니다.')
+        if not username:
+            raise ValueError('사용자 이름(username)은 필수입니다.')
+        user = self.model(student_id=student_id, username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, student_id, password=None, **extra_fields):
+    def create_superuser(self, student_id, username, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(student_id, password, **extra_fields)
+        return self.create_user(student_id, username, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
     student_id = models.CharField(max_length=20, unique=True)
+    username = models.CharField(max_length=30, unique=True, null=True, blank=False)  # ✅ 사용자 이름 필수
     email = models.EmailField(blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'student_id'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username']
 
     objects = UserManager()
 
     def __str__(self):
         return self.student_id
 
-    def email_user(self, subject, message, from_email=None, **kwargs):
-        send_mail(subject, message, from_email, [self.email], **kwargs)
-
 class Reservation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     machine = models.ForeignKey('Machine', on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    #confirmed = models.BooleanField(default=False)
-    #created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.student_id} - {self.machine} ({self.start_time} to {self.end_time})"
@@ -92,12 +93,14 @@ class PushSubscription(models.Model):
 class Building(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
+    @property
     def get_image_url(self):
-        static_filename = f'building_{self.name}.jpg'
-        static_path = os.path.join(settings.BASE_DIR, 'static', 'images', static_filename)
-        if os.path.exists(static_path):
-            return f'/static/images/{static_filename}'
-        return '/static/images/default_building.jpg'
+        # building 이름에서 알파벳, 숫자만 추출 (예: A동 → A)
+        name_safe = re.sub(r'[^\w]', '', self.name)
+        static_filename = f'building_{name_safe}.jpg'
+
+        # 반환만 하고 존재 여부는 브라우저에게 맡김 (404면 default 쓰도록)
+        return f'/static/images/{static_filename}'
 
 class Machine(models.Model):
     MACHINE_TYPES = (
@@ -110,11 +113,26 @@ class Machine(models.Model):
     image = models.ImageField(upload_to='machine_images/', blank=True, null=True)
     is_in_use = models.BooleanField(default=False)
 
+    @property
     def get_image_url(self):
-        if self.image:
-            return self.image.url
+    # 미디어 이미지가 없는 경우에도 안전하게 fallback
         if self.machine_type == 'washer':
             return '/static/images/washer_icon.png'
         elif self.machine_type == 'dryer':
             return '/static/images/dryer_icon.png'
         return '/static/images/default_machine.png'
+    
+User = get_user_model()
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    student_id = models.CharField(max_length=20)
+    department = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f'{self.user.username} 프로필'
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
