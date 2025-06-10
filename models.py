@@ -14,6 +14,8 @@ class Reservation(models.Model):              # 하나의 예약 모델 저장
     machine = models.ForeignKey(WashingMachine,on_delete=models.CASCADE)    # 어떤 세탁기를 예액했는지
     start_time = models.DateTimeField() #에약 시작 시간
     end_time = models.DateTimeField()   #에약 종료 시간
+    confirmed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def _str_(self):
         return f"{self.machine.name} 예약{ self.start_time} ~ {self.end_time}" #세탁기 1번 예약 (2025-04-16 13:00 ~ 14:00)

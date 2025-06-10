@@ -1,6 +1,8 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from rest_framework.authtoken.views import obtain_auth_token
+from django.contrib.auth.views import LogoutView
+
 
 from . import views
 
@@ -17,6 +19,7 @@ urlpatterns = [
     path('select_machine/', views.select_machine, name='select_machine'),
     # 3단계: 실제 기계 리스트 (GET 파라미터 building, type 사용)
     path('machines/', views.machine_list_page, name='machine_list_page'),
+    ##path('reservations/confirm/<int:pk>/', views.confirm_reservation, name='confirm_reservation'),
 
     # ── 마이페이지 및 통계
     path('mypage/', views.mypage, name='mypage'),
@@ -39,4 +42,6 @@ urlpatterns = [
     # ── 회원가입 및 활성화
     path('signup/', views.signup_view, name='signup'),
     path('activate/<uidb64>/<token>/', views.activate_view, name='activate'),
+    # 로그아웃
+    path('logout/', LogoutView.as_view(next_page='laundry:index_page'), name='logout'),
 ]

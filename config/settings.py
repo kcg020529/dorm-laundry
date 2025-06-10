@@ -3,7 +3,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 환경 변수로부터 민감한 설정 불러오기
@@ -123,6 +122,8 @@ REST_FRAMEWORK = {
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
 
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
 # 이메일 설정
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.your-email.com'
@@ -134,3 +135,6 @@ DEFAULT_FROM_EMAIL = 'HUFS Laundry <your_email@hufs.ac.kr>'
 
 # 기본 PK 필드 타입
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#로그아웃 후 이전페이지 접속 불가
+LOGOUT_REDIRECT_URL = 'laundry:index_page'

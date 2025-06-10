@@ -8,8 +8,10 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.http import JsonResponse
 from django.utils import timezone
+
 from datetime import timedelta
 from dateutil import parser  # 추가
+from django.utils import timezone
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -20,6 +22,8 @@ from .models import Building, Machine, Reservation, WaitList
 from .task import send_reservation_reminder, start_reservation_task, end_reservation_task
 from .forms import SignUpForm
 import os
+import json
+import datetime
 
 User = get_user_model()
 
@@ -182,33 +186,44 @@ def get_remaining_time_api(request):
     except Machine.DoesNotExist:
         return Response({'minutes': None}, status=status.HTTP_404_NOT_FOUND)
 
+import json
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_reservation(request):
     try:
         user = request.user
+
+        # ✅ request.data만 사용
         machine_id = request.data.get('machine_id')
         start_str = request.data.get('start_time')
         end_str = request.data.get('end_time')
 
-        print("받은 데이터:", machine_id, start_str, end_str)
+        print("DEBUG:", machine_id, start_str, end_str)
 
-        # 문자열 → datetime
+        if not (machine_id and start_str and end_str):
+            return Response({'success': False, 'message': '필수 데이터 누락'}, status=400)
+
         start = parser.isoparse(start_str)
         end = parser.isoparse(end_str)
 
+        kst = timezone.get_current_timezone()
+        start = start.astimezone(kst)
+        end = end.astimezone(kst)
+        now = timezone.localtime()  # 이미 KST
+
+
+        print("📌 서버 기준 현재 시각 (now):", now.isoformat())
+        print("📌 예약 요청 시작 시각 (start):", start.isoformat())
+
+        if start < now:
+            return Response({'success': False, 'message': '예약 시작 시간이 현재보다 이전입니다.'}, status=400)
+
         machine = get_object_or_404(Machine, pk=machine_id)
 
-        # 중복 예약 방지
-        now = timezone.now()
-        existing = Reservation.objects.filter(
-            machine=machine,
-            end_time__gt=now
-        ).exists()
-        if existing:
+        if Reservation.objects.filter(machine=machine, end_time__gt=timezone.now()).exists():
             return Response({'success': False, 'message': '이미 사용 중인 기기입니다.'}, status=400)
 
-        # 예약 생성
         new_res = Reservation.objects.create(
             user=user,
             machine=machine,
@@ -216,11 +231,9 @@ def create_reservation(request):
             end_time=end
         )
 
-        # 머신 상태 갱신
         machine.is_in_use = True
         machine.save()
 
-        # 예약 관련 태스크 등록
         start_reservation_task.apply_async(args=[new_res.id], eta=start)
         end_reservation_task.apply_async(args=[new_res.id], eta=end)
 
@@ -235,7 +248,8 @@ def create_reservation(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return Response({'success': False, 'message': f'서버 에러: {str(e)}'}, status=500)
+        return Response({'success': False, 'message': f'서버 오류: {str(e)}'}, status=500)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

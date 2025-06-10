@@ -46,10 +46,19 @@
                 <li><a href="#">이용안내</a></li>
             </ul>
         </nav>
-        <div class="auth-buttons">
-            <a class="login-btn" href="{% url 'laundry:login' %}">로그인</a>
-            <a class="signup-btn" href="{% url 'laundry:signup' %}">회원가입</a>
-        </div>
+       <div class="auth-buttons">
+  {% if user.is_authenticated %}
+    <!-- 로그인 상태일 때는 아무 버튼도 표시하지 않거나 로그아웃 버튼 표시 가능 -->
+    <form method="post" action="{% url 'laundry:logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="login-btn">로그아웃</button>
+    </form>
+  {% else %}
+    <a class="login-btn" href="{% url 'laundry:login' %}">로그인</a>
+    <a class="signup-btn" href="{% url 'laundry:signup' %}">회원가입</a>
+  {% endif %}
+</div>
+
     </header>
 
     <main class="main-section">
