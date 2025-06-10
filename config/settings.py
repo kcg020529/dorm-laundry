@@ -135,3 +135,6 @@ DEFAULT_FROM_EMAIL = 'HUFS Laundry <your_email@hufs.ac.kr>'
 
 # 기본 PK 필드 타입
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#로그아웃 후 이전페이지 접속 불가
+LOGOUT_REDIRECT_URL = 'laundry:index_page'

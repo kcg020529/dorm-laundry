@@ -310,3 +310,12 @@
   cursor: not-allowed;
   box-shadow: none;
 }
+.cancel-btn {
+    background-color: #c0392b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin-left: 10px;
+    cursor: pointer;
+}

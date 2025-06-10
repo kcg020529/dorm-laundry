@@ -1,6 +1,8 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from rest_framework.authtoken.views import obtain_auth_token
+from django.contrib.auth.views import LogoutView
+
 
 from . import views
 
@@ -40,4 +42,6 @@ urlpatterns = [
     # ── 회원가입 및 활성화
     path('signup/', views.signup_view, name='signup'),
     path('activate/<uidb64>/<token>/', views.activate_view, name='activate'),
+    # 로그아웃
+    path('logout/', LogoutView.as_view(next_page='laundry:index_page'), name='logout'),
 ]

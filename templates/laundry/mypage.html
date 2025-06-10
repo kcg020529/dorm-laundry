@@ -30,6 +30,16 @@
     margin-left: 10px;
     cursor: pointer;
 }
+    .cancel-btn {
+    background-color: #c0392b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
 </style>
 
 <!-- CSRF 토큰용 숨은 form (JS에서 사용하기 위함) -->
@@ -52,10 +62,12 @@
                 <li>
                     {{ res.machine.building }}동 {{ res.machine.name }}
                     {% if not res.confirmed %}
-                        <span class="timer" id="timer-{{ res.id }}">--:--</span>
-                        <button class="confirm-btn" onclick="confirmReservation({{ res.id }})">사용 시작</button>
+                     <span class="timer" id="timer-{{ res.id }}">--:--</span>
+                     <button class="confirm-btn" onclick="confirmReservation({{ res.id }})">사용 시작</button>
+                     <button class="cancel-btn" onclick="cancelReservation({{ res.id }})">예약 취소</button>
                     {% else %}
                         ✅ 사용 중
+                        <button class="cancel-btn" onclick="cancelReservation({{ res.id }})">예약 취소</button>
                     {% endif %}
                 </li>
             {% empty %}
@@ -73,8 +85,7 @@
 </div>
 
 <script>
-// CSRF 토큰 추출
-const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
 
 // 예약 목록
 const reservations = [
@@ -113,20 +124,27 @@ updateTimers();
 setInterval(updateTimers, 1000);
 
 // 예약 확인 버튼 클릭 시
-function confirmReservation(reservationId) {
-  fetch(`/laundry/reservations/confirm/${reservationId}/`, {
+function cancelReservation(reservationId) {
+  if (!confirm("정말로 예약을 취소하시겠습니까?")) return;
+
+  fetch(`/laundry/reservations/cancel/${reservationId}/`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       'X-CSRFToken': csrftoken,
+      'Content-Type': 'application/json',
     },
-    credentials: 'include',
+    credentials: 'include'
   })
   .then(res => res.json())
   .then(data => {
     alert(data.message);
     location.reload();
+  })
+  .catch(err => {
+    console.error(err);
+    alert("예약 취소 중 오류 발생");
   });
 }
+
 </script>
 {% endblock %}
