@@ -6,7 +6,7 @@ from .models import Reservation, Machine, WaitList, PushSubscription
 from django.conf import settings
 import json
 from pywebpush import webpush, WebPushException
-'''
+
 @shared_task
 def start_reservation_task(reservation_id):
     """
@@ -91,4 +91,3 @@ def send_reservation_reminder(reservation_id, label):
         except WebPushException:
             sub.delete()
             continue
-'''

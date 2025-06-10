@@ -44,6 +44,7 @@
     </div>
 
     <div class="mypage-section">
+        <p>현재 로그인한 사용자: {{ user.student_id }}</p>
         <h3>▼ 내 예약 관리</h3>
         <ul id="reservation-list">
             {% for res in reservations %}
