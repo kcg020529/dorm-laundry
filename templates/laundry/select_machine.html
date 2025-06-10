@@ -145,8 +145,14 @@
     if (card) card.style.pointerEvents = "none";
 
     const now = new Date();
-    const startTime = now.toISOString();
-    const endTime = new Date(now.getTime() + 30 * 60000).toISOString();
+    const startTime = new Date(now.getTime() + 5000).toISOString();  // ⏱️ 5초 뒤
+    const endTime = new Date(now.getTime() + 35 * 60000).toISOString();
+
+  console.log("보내는 예약 데이터:", {
+    machine_id: machineId,
+    start_time: startTime,
+    end_time: endTime
+  });
 
     fetch("{% url 'laundry:create_reservation' %}", {
       method: "POST",
